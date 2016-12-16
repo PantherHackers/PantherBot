@@ -59,6 +59,9 @@ def on_message(ws, message):
 			if words[0].lower() == "!flip":
 				flip(response, words)
 				return
+			if words[0].lower() == "!help":
+				help(response)
+				return
 		#If not an !, checks if it should respond to another message format, like a greeting
 		elif "Hey PantherBot" in response["text"]:
 			#returns user info that said hey
@@ -90,6 +93,21 @@ def rMsg(response, text):
 	)
 
 #scripts
+
+#help script that details the list of commands
+def help(response):
+	text = "PantherBot works by prefacing commands with \"!\"\n"
+	text = text + "Commands:\n"
+	text = text + "```!help\n"
+	text = text + "!coin\n" 
+	text = text + "!fortune\n" 
+	text = text + "!flip <String>\n" 
+	text = text + "!catfact\n"
+	text = text + "!pugbomb <num>\n" 
+	text = text + "\"Hey PantherBot\"```\n"
+	text = text + "Try saying `Hey PantherBot` or `!coin`"
+	print text
+	rMsg(response, text)
 
 #returns a random catfact from an api
 def catFacts(response):
