@@ -14,15 +14,12 @@ import urllib2
 import random
 import upsidedown
 import logging
-<<<<<<< HEAD
-=======
 
 #initialize basic logging to see errors more easily
 logger = logging.getLogger('root')
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(format=FORMAT)
 logger.setLevel(logging.DEBUG)
->>>>>>> origin/master
 
 #Get Token from local system environment variables
 t = os.environ['SLACK_API_TOKEN']
@@ -231,7 +228,6 @@ def pugbomb(response):
 	m = json.loads(m)
 	for s in m["pugs"]:
 		rMsg(response, s)
-<<<<<<< HEAD
 		
 #enables logging of messages on a channel/channels, storing the logs sorted by channel by day in the format "channelID Y-M-D"
 def log(response, words):
@@ -283,20 +279,9 @@ def log(response, words):
 		DUMMY = []
 		LOGC = DUMMY
 		return
-=======
-
-
-#Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)
-if sys.stdout.encoding != 'utf-8':
-  sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
-if sys.stderr.encoding != 'utf-8':
-  sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
->>>>>>> origin/master
-
-
+		
 #necessary shenanigans
 if __name__ == "__main__":
-<<<<<<< HEAD
 	#Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)
 	if sys.stdout.encoding != 'utf-8':
 		sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
@@ -310,11 +295,3 @@ if __name__ == "__main__":
 							on_close = on_close)
 	#ws.on_open = on_open
 	ws.run_forever()
-	
-
-=======
-
-    ws = websocket.WebSocketApp(test["url"], on_message = on_message, on_error = on_error, on_close = on_close)
-    #ws.on_open = on_open
-    ws.run_forever()
->>>>>>> origin/master
