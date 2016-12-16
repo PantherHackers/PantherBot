@@ -17,6 +17,7 @@ Current list of action commands:
 
 Current list of logging commands:
 ```
+$log <true/false> <optional: list of channels>
 ```
 
 To use these commands, in any channel that PantherBot is both present in and may post, start your message with one of the above commands and fill in the arguments as necessary
