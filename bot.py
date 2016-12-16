@@ -72,7 +72,11 @@ def on_message(ws, message):
 			target.write(response["ts"] + "]\n\n")
 			target.close()
 		#Checks if message starts with an exclamation point, and does the respective task
-		if response["text"][:1] == "!":
+		#Riyan's denial
+		if "U0LJJ7413" in response["user"]:
+			if response["text"][:1] in ["!", "$", "Hey PantherBot"]:
+				rMsg(response, "No.")
+		elif response["text"][:1] == "!":
 			#put all ! command parameters into an array
 			words = response["text"].split()
 			#Command logic
