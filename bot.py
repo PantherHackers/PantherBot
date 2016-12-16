@@ -24,6 +24,7 @@ logger.setLevel(logging.DEBUG)
 #Get Token from local system environment variables
 t = os.environ['SLACK_API_TOKEN']
 
+#Global Variables
 BOT_NAME = 'PantherBot'
 BOT_ICON_URL = 'https://www.iconexperience.com/_img/g_collection_png/standard/512x512/robot.png'
 global LOG
