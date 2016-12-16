@@ -140,15 +140,16 @@ def rMsg(response, text):
 #help script that details the list of commands
 def help(response):
 	text = "PantherBot works by prefacing commands with \"!\"\n"
-	text = text + "Commands:\n"
-	text = text + "```!help\n"
-	text = text + "!coin\n"
-	text = text + "!fortune\n"
-	text = text + "!flip <String>\n"
-	text = text + "!catfact\n"
-	text = text + "!pugbomb <num>\n"
-	text = text + "\"Hey PantherBot\"```\n"
-	text = text + "Try saying `Hey PantherBot` or `!coin`"
+	text += "Commands:\n"
+	text += "```!help\n"
+	text += "!coin\n"
+	text += "!fortune\n"
+	text += "!flip <String>\n"
+	text += "!rage flip <String>\n"
+	text += "!catfact\n"
+	text += "!pugbomb <int>\n"
+	text += "\"Hey PantherBot\"```\n"
+	text += "Try saying `Hey PantherBot` or `!coin`"
 	rMsg(response, text)
 
 #returns a random catfact from an api
