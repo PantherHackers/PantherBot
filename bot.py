@@ -14,6 +14,15 @@ import urllib2
 import random
 import upsidedown
 import logging
+<<<<<<< HEAD
+=======
+
+#initialize basic logging to see errors more easily
+logger = logging.getLogger('root')
+FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+logging.basicConfig(format=FORMAT)
+logger.setLevel(logging.DEBUG)
+>>>>>>> origin/master
 
 #Get Token from local system environment variables
 t = os.environ['SLACK_API_TOKEN']
@@ -81,8 +90,11 @@ def on_message(ws, message):
 			if words[0].lower() == "!pugbomb":
 				pugbomb(response)
 				return
-			if words[0].lower() == "!flip":
+			if words[0].lower() == "!flip" or words[0].lower() == "!rage":
 				flip(response, words)
+				return
+			if words[0].lower() == "!unflip":
+				unflip(response, words)
 				return
 			if words[0].lower() == "!help":
 				help(response)
@@ -114,7 +126,7 @@ def on_error(ws, error):
 
 def on_close(ws):
 	print "### closed ###"
-	
+
 #send a response message (sends to same channel as command was issued)
 def rMsg(response, text):
 	sc.api_call(
@@ -132,11 +144,11 @@ def help(response):
 	text = "PantherBot works by prefacing commands with \"!\"\n"
 	text = text + "Commands:\n"
 	text = text + "```!help\n"
-	text = text + "!coin\n" 
-	text = text + "!fortune\n" 
-	text = text + "!flip <String>\n" 
+	text = text + "!coin\n"
+	text = text + "!fortune\n"
+	text = text + "!flip <String>\n"
 	text = text + "!catfact\n"
-	text = text + "!pugbomb <num>\n" 
+	text = text + "!pugbomb <num>\n"
 	text = text + "\"Hey PantherBot\"```\n"
 	text = text + "Try saying `Hey PantherBot` or `!coin`"
 	rMsg(response, text)
@@ -153,17 +165,45 @@ def catFacts(response):
 
 #flips text using upsidedown module
 def flip(response, words):
+	toFlip = ''
+	if words[0].lower() == "!rage":
+		donger = '(ノಠ益ಠ)ノ彡'
+		for n in range(2, len(words)):
+			toFlip += words[n] + " "
+	else:
+		donger = '(╯°□°）╯︵'
+		print len(words)
+		if len(words) >= 1:
+			for n in range(1, len(words)):
+				toFlip += words[n] + " "
+
+	if toFlip == '':
+		toFlip = unicode('┻━┻', "utf-8")
+
 	try:
-		toFlip = ""
-		donger = "(┛ಠДಠ)┛彡┻━┻ "
 		donger = unicode(donger, "utf-8")
-		for n in range(1,len(words)):
-			toFlip = toFlip + words[n] + " "
 		flippedmsg = upsidedown.transform(toFlip)
 		rMsg(response, donger + flippedmsg)
 	except:
 		print "PantherBot LOG:Flip:Error in flip"
 		rMsg(response, "Sorry, I can't seem to flip right now")
+
+#"unflips" text
+def unflip(response, words):
+	toUnFlip = ''
+	for n in range(1, len(words)):
+		toUnFlip += words[n] + " "
+
+	if toUnFlip == "":
+		toUnFlip = unicode('┬──┬', "utf-8")
+
+	try:
+		donger = "ノ( º _ ºノ)"
+		donger = unicode(donger, "utf-8")
+		rMsg(response, toUnFlip + donger)
+	except:
+		print "PantherBot LOG:Flip:Error in flip"
+		rMsg(response, "Sorry, I can't seem to unflip right now")
 
 #flips a coin
 def coin(response):
@@ -179,7 +219,7 @@ def giveFortune(response):
 	except:
 		fortune = "Unable to reach fortune telling api"
 		print "PantherBot LOG:Fortune:Error in receiving fortune"
-		
+
 	#make api call
 	rMsg(response, fortune)
 
@@ -191,6 +231,7 @@ def pugbomb(response):
 	m = json.loads(m)
 	for s in m["pugs"]:
 		rMsg(response, s)
+<<<<<<< HEAD
 		
 #enables logging of messages on a channel/channels, storing the logs sorted by channel by day in the format "channelID Y-M-D"
 def log(response, words):
@@ -242,9 +283,20 @@ def log(response, words):
 		DUMMY = []
 		LOGC = DUMMY
 		return
+=======
+
+
+#Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)
+if sys.stdout.encoding != 'utf-8':
+  sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
+if sys.stderr.encoding != 'utf-8':
+  sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
+>>>>>>> origin/master
+
 
 #necessary shenanigans
 if __name__ == "__main__":
+<<<<<<< HEAD
 	#Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)
 	if sys.stdout.encoding != 'utf-8':
 		sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
@@ -260,3 +312,9 @@ if __name__ == "__main__":
 	ws.run_forever()
 	
 
+=======
+
+    ws = websocket.WebSocketApp(test["url"], on_message = on_message, on_error = on_error, on_close = on_close)
+    #ws.on_open = on_open
+    ws.run_forever()
+>>>>>>> origin/master
