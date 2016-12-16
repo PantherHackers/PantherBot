@@ -99,7 +99,9 @@ def on_message(ws, message):
 				rMsg(response, GiveFortune.giveFortune(response))
 				return
 			if args[0].lower() == "!pugbomb":
-				rMsg(response, Pugbomb.pugbomb(response))
+				m = Pugbomb.pugbomb(response)
+				for s in m["pugs"]:
+					rMsg(response, s)
 				return
 			if args[0].lower() == "!flip" or args[0].lower() == "!rage":
 				rMsg(response, Flip.flip(response, args))
