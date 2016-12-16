@@ -26,7 +26,7 @@ t = os.environ['SLACK_API_TOKEN']
 
 BOT_NAME = 'PantherBot'
 BOT_ICON_URL = 'https://www.iconexperience.com/_img/g_collection_png/standard/512x512/robot.png'
-global LOG 
+global LOG
 LOG = False
 global LOGC
 LOGC = []
@@ -169,7 +169,6 @@ def flip(response, words):
 			toFlip += words[n] + " "
 	else:
 		donger = '(╯°□°）╯︵'
-		print len(words)
 		if len(words) >= 1:
 			for n in range(1, len(words)):
 				toFlip += words[n] + " "
@@ -228,7 +227,7 @@ def pugbomb(response):
 	m = json.loads(m)
 	for s in m["pugs"]:
 		rMsg(response, s)
-		
+
 #enables logging of messages on a channel/channels, storing the logs sorted by channel by day in the format "channelID Y-M-D"
 def log(response, words):
 	if "true" == words[1].lower():
@@ -274,12 +273,12 @@ def log(response, words):
 		return
 	if "false" == words[1].lower():
 		print "PantherBot:LOG:Disabling logging"
-		global LOG 
+		global LOG
 		LOG = False
 		DUMMY = []
 		LOGC = DUMMY
 		return
-		
+
 #necessary shenanigans
 if __name__ == "__main__":
 	#Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)
