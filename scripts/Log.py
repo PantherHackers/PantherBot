@@ -9,7 +9,7 @@ def log(response, words):
 		LOG = True
 		if len(words) > 2:
 			print "PantherBot:LOG:List of channels to log gathered"
-			i = 2
+
 			#obtains list of public channels PB is in
 			c0 = sc.api_call(
 				"channels.list",
@@ -29,17 +29,13 @@ def log(response, words):
 				for c in c0["channels"]:
 					if c["name"].lower() == words[w].lower():
 						LOGC.append(str(c["id"]))
-						found = True
 						break
 				#Same as above
 				for p in p0["groups"]:
 					if p["name"].lower() == words[w].lower():
 						LOGC.append(str(p["id"]))
-						found = True
 						break
-				#If no channel is found by that name, increases the offset by one (skips an argument, essentially)
-				if found == False:
-					i = i + 1
+
 		else:
 			print "PantherBot:LOG:No Channels listed to log, logging channel $log was called in"
 			LOGC.append(str(response["channel"]))
@@ -47,6 +43,7 @@ def log(response, words):
 	if "false" == words[1].lower():
 		print "PantherBot:LOG:Disabling logging"
 		global LOG
+		global LOGC
 		LOG = False
 		DUMMY = []
 		LOGC = DUMMY

@@ -30,7 +30,7 @@ LOGC = []
 sc = SlackClient(t)
 
 #initiates connection to the server based on the token
-test = sc.api_call(
+bot_conn = sc.api_call(
 	"rtm.start",
 	token = t
 )
@@ -47,21 +47,33 @@ def on_message(ws, message):
 	#Checks if the event type returned by Slack is a message
 	if "message" == response["type"]:
 		global LOG, LOGC
+
 		#If $log has been set to true it will save all spoken messages.
 		if LOG == True and response["channel"] in LOGC:
+			#sets file location to the logs folder and based on the day's date
+			#this way if $log is enabled and the day rolls over, it will shift over to the new file without hiccup
 			filename = "logs/" + response["channel"] + " " + str(datetime.date.today()) + ".txt"
-			d0 = sc.api_call(
+
+			#API call for user info that posted the message, personnally this should be removed
+			#its innefficient (and causes unnecessary API calls), we should make a locally stored list of users that have talked and reference that
+			#and if they arent found, call this function and append that list
+			temp_user = sc.api_call(
 				"users.info",
 				user = response["user"]
 			)
-			u = d0["user"]["profile"]["first_name"] + " " + d0["user"]["profile"]["last_name"]
+
 			script_dir = os.path.dirname(__file__)
-			adir = os.path.join(script_dir, filename)
-			if os.path.isfile(adir) == True:
-				target = open(adir, "a")
+			fullDir = os.path.join(script_dir, filename)
+			if os.path.isfile(fullDir) == True:
+				target = open(fullDir, "a")
 			else:
-				target = open(adir, "w+")
-			target.write(u + "\n")
+				target = open(fullDir, "w+")
+			user_name = temp_user["user"]["profile"]["first_name"] + " " + temp_user["user"]["profile"]["last_name"]
+
+			#format:
+			#F_NAME L_NAME
+			#[MESSAGE] [TIMESTAMP]
+			target.write(user_name+ "\n")
 			target.write(response["text"] + " [")
 			target.write(response["ts"] + "]\n\n")
 			target.close()
@@ -75,53 +87,55 @@ def on_message(ws, message):
 		#Checks if message starts with an exclamation point, and does the respective task
 		elif response["text"][:1] == "!":
 			#put all ! command parameters into an array
-			words = response["text"].split()
+			args = response["text"].split()
 			#Command logic
-			if words[0].lower() == "!catfact":
+			if args[0].lower() == "!catfact":
 				rMsg(response, CatFacts.catFacts(response))
 				return
-			if words[0].lower() == "!coin":
+			if args[0].lower() == "!coin":
 				rMsg(response, Coin.coin(response))
 				return
-			if words[0].lower() == "!fortune":
+			if args[0].lower() == "!fortune":
 				rMsg(response, GiveFortune.giveFortune(response))
 				return
-			if words[0].lower() == "!pugbomb":
+			if args[0].lower() == "!pugbomb":
 				rMsg(response, Pugbomb.pugbomb(response))
 				return
-			if words[0].lower() == "!flip" or words[0].lower() == "!rage":
-				rMsg(response, Flip.flip(response, words))
+			if args[0].lower() == "!flip" or args[0].lower() == "!rage":
+				rMsg(response, Flip.flip(response, args))
 				return
-			if words[0].lower() == "!unflip":
-				rMsg(response, Unflip.unflip(response, words))
+			if args[0].lower() == "!unflip":
+				rMsg(response, Unflip.unflip(response, args))
 				return
-			if words[0].lower() == "!help":
+			if args[0].lower() == "!help":
 				rMsg(response, Help.help(response))
 				return
+
 		#Checks for a log command
 		elif response["text"][:1] == "$":
-			words = response["text"].split()
+			args = response["text"].split()
 			#Command logic
-			if words[0].lower() == "$log":
+			if args[0].lower() == "$log":
 				if response["user"] in ADMIN:
 					print "PantherBot:LOG:Approved User called $log"
-					Log.log(response, words)
+					Log.log(response, args)
 					return
 
 		#If not an ! or $, checks if it should respond to another message format, like a greeting
 		elif "Hey PantherBot" in response["text"]:
 			#returns user info that said hey
-			d0 = sc.api_call(
+			temp_user = sc.api_call(
 				"users.info",
 				user = response["user"]
 			)
 			print "PantherBot LOG:Greeting:We did it reddit"
 			try:
 				#attempts to send a message to Slack, this one is the only one that needs this try thing so far, no clue why
-				rMsg(response, "Hello, " + d0["user"]["profile"]["first_name"] + "! :tada:")
+				rMsg(response, "Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:")
 			except:
 				print "PantherBot LOG:Greeting:Error in response"
 
+#Unused things for WebSocketApp
 def on_error(ws, error):
 	print error
 
@@ -129,11 +143,11 @@ def on_close(ws):
 	print "### closed ###"
 
 #send a response message (sends to same channel as command was issued)
-def rMsg(response, text):
+def rMsg(response, t):
 	sc.api_call(
 		"chat.postMessage",
 		channel=response["channel"],
-		text=text,
+		text=t,
 		username=BOT_NAME,
 		icon_url=BOT_ICON_URL
 	)
@@ -145,10 +159,12 @@ if __name__ == "__main__":
 		sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
 	if sys.stderr.encoding != 'utf-8':
 		sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
-    #websocket.enableTrace(True)
-	ws = websocket.WebSocketApp(test["url"],
+
+	#creates WebSocketApp based on the wss returned by the RTM API
+	ws = websocket.WebSocketApp(bot_conn["url"],
 							on_message = on_message,
 							on_error = on_error,
 							on_close = on_close)
-	#ws.on_open = on_open
+
+	#Keeps socket open
 	ws.run_forever()

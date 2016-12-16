@@ -10,9 +10,10 @@ def help(response):
 	text += "!fortune\n"
 	text += "!flip <String>\n"
 	text += "!rage flip <String>\n"
+	text += "!unflip <String>\n"
+	text += "!rage flip <String>\n"
 	text += "!catfact\n"
 	text += "!pugbomb <int>\n"
 	text += "\"Hey PantherBot\"```\n"
 	text += "Try saying `Hey PantherBot` or `!coin`"
 	return text
-	
