@@ -1,15 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#Slack imports
 from slackclient import SlackClient
-from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Log, Pugbomb, Unflip
-import os, sys, codecs, websocket, thread, datetime, json, urllib2, random, upsidedown, logging
+#Google imports
+from oauth2client.service_account import ServiceAccountCredentials
+from httplib2 import Http
+from apiclient.discovery import build
+#Other imports
+from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Log, Pugbomb, Unflip, Calendar
+import os, sys, codecs, websocket, datetime, json, logging
 
 #initialize basic logging to see errors more easily
-#logger = logging.getLogger('root')
-#FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-#logging.basicConfig(format=FORMAT)
-#logger.setLevel(logging.DEBUG)
+logger = logging.getLogger('root')
+FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+logging.basicConfig(format=FORMAT)
+logger.setLevel(logging.DEBUG)
 
 #Get Token from local system environment variables
 t = os.environ['SLACK_API_TOKEN']
@@ -29,15 +35,6 @@ LOG = False
 global LOGC
 LOGC = []
 
-#initiates the SlackClient connection
-sc = SlackClient(t)
-
-#initiates connection to the server based on the token
-bot_conn = sc.api_call(
-	"rtm.start",
-	token = t
-)
-
 #function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything
 def on_message(ws, message):
 	#converts to usable string format
@@ -45,7 +42,7 @@ def on_message(ws, message):
 
 	#converts to JSON so we can parse through it easier
 	response = json.loads(s)
-	print "PantherBot LOG:" + response["type"]
+	print "PantherBot LOG:message:" + response["type"]
 
 	#Checks if the event type returned by Slack is a message
 	if "message" == response["type"]:
@@ -115,6 +112,10 @@ def on_message(ws, message):
 			if args[0].lower() == "!help":
 				rMsg(response, Help.help(response))
 				return
+			if args[0].lower() == "!calendar":
+				#need to check allowed users but this can be set up properly later
+				if response["user"] == "U3EAHHF40":
+					rMsg(response, Calendar.determine(response, args, calendar))
 
 		#Checks for a log command
 		elif response["text"][:1] == "$":
@@ -170,13 +171,43 @@ def rMsg(response, t):
 
 #necessary shenanigans
 if __name__ == "__main__":
+	print "PantherBot:LOG:Beginning Execution... Setting up"
+
 	#Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)
 	if sys.stdout.encoding != 'utf-8':
 		sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
 	if sys.stderr.encoding != 'utf-8':
 		sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
 
+	#Google API stuff
+	#SOOOOO... Google doesnt like us using a newer version of oauth2, might have to downgrade when we put this on the Pi officially
+	scopes = ['https://www.googleapis.com/auth/calendar']
+
+	secret_location = os.path.dirname(__file__)
+	secret_fullDir = os.path.join(secret_location, 'secrets', 'PantherBot-test.json')
+
+	print "PantherBot:LOG:Searching for Google Credentials"
+	credentials = ServiceAccountCredentials.from_json_keyfile_name(
+	    secret_fullDir, scopes=scopes)
+
+	print "PantherBot:LOG:Authenticating..."
+	google_http_auth = credentials.authorize(Http())
+
+	calendar = build('calendar', 'v3', http=google_http_auth)
+	print "PantherBot:LOG:Authentication Successful. Should consider enabling debug to view OAuth message. Starting PantherBot"
+	#print calendar.calendarList().list().execute()
+
+	#initiates the SlackClient connection
+	sc = SlackClient(t)
+
+	#initiates connection to the server based on the token
+	print "PantherBot:LOG:Starting RTM connection"
+	bot_conn = sc.api_call(
+		"rtm.start",
+		token = t
+	)
 	#creates WebSocketApp based on the wss returned by the RTM API
+	print "PantherBot:LOG:Starting WebSocketApplication and connection"
 	ws = websocket.WebSocketApp(bot_conn["url"],
 							on_message = on_message,
 							on_error = on_error,

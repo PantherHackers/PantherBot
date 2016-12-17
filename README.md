@@ -14,6 +14,7 @@ Current list of action commands:
 !catfact
 !pugbomb <number>
 !flip/!rage flip/!unflip <String of any length containing only ascii characters>
+!calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location>
 ```
 
 Current list of logging commands:
