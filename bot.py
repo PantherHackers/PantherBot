@@ -17,6 +17,9 @@ t = os.environ['SLACK_API_TOKEN']
 #CUSTOM VARIABLES
 BOT_NAME = 'PantherBot'
 BOT_ICON_URL = 'https://www.iconexperience.com/_img/g_collection_png/standard/512x512/robot.png'
+TUT_LINK = ""
+GREETING = "Greetings newcomer! This is your friendly neighborhood PantherBot, a bot created by your fellow members of PantherHackers! We just wanted to say hello, and welcome you to the family! If Slack seems intimidating, have no fear! If you've ever messed with the likes of Discord, it is a lot like that. If you haven't messed with that either, again, no worries.\nTo get started, you have your default channels on the left (expand the menu by tapping the Panther icon in the top left if you are on mobile). To join more channels, click/tap on the plus button next to \"CHANNELS\" and you'll be well on your way.\nIf you are interested to learn more about Slack, you can go to our custom tutorial here: " + TUT_LINK
+
 #contains user IDs for those allowed to run $ commands
 ADMIN = ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"]
 
@@ -136,6 +139,15 @@ def on_message(ws, message):
 				rMsg(response, "Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:")
 			except:
 				print "PantherBot LOG:Greeting:Error in response"
+
+	if "team_join" == response["type"]:
+		sc.api_call(
+			"chat.postMessage",
+			channel=response["user"],
+			text=GREETING,
+			username=BOT_NAME,
+			icon_url=BOT_ICON_URL
+		)
 
 #Unused things for WebSocketApp
 def on_error(ws, error):
