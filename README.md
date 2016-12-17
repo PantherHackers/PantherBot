@@ -36,4 +36,4 @@ PantherBot is currently relatively easy to set up in your Slack team. Follow the
 2. Set up a System Environment Variable called `SLACK_API_TOKEN`, and set its value to your API token you copied earlier.
 3. Start the bot.py script. The included start.bat script is good enough on Windows setups. If you're running Linux I'm sure it won't be much harder.
 4. The bot should become active in the slack team. Invite the bot into the channels you would like it to monitor (using the /invite @username command), and off it goes surveying the world!
-5. The bot is set up, if you want to edit anything (like the posting name or icon), edit the bot.py script's `BOT_NAME` and `BOT_ICON_URL`.
+5. The bot is set up, if you want to edit anything (like the posting name or icon), edit the bot.py script's `BOT_NAME`, `BOT_ICON_URL`, `TUT_LINK`, and `GREETING`.
