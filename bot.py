@@ -141,9 +141,11 @@ def on_message(ws, message):
 				print "PantherBot LOG:Greeting:Error in response"
 
 	if "team_join" == response["type"]:
+		print "Member joined team"
+		print response
 		sc.api_call(
 			"chat.postMessage",
-			channel=response["user"],
+			channel=response["user"]["id"],
 			text=GREETING,
 			username=BOT_NAME,
 			icon_url=BOT_ICON_URL
