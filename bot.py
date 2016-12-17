@@ -3,13 +3,7 @@
 
 from slackclient import SlackClient
 from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Log, Pugbomb, Unflip
-import os, sys, codecs, websocket, thread, datetime, json, urllib2, random, upsidedown, logging
-
-#initialize basic logging to see errors more easily
-#logger = logging.getLogger('root')
-#FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-#logging.basicConfig(format=FORMAT)
-#logger.setLevel(logging.DEBUG)
+import os, sys, codecs, websocket, datetime, json
 
 #Get Token from local system environment variables
 t = os.environ['SLACK_API_TOKEN']
