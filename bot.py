@@ -12,10 +12,10 @@ from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Log, Pugbomb, Unfli
 import os, sys, codecs, websocket, datetime, json, logging
 
 #initialize basic logging to see errors more easily
-logger = logging.getLogger('root')
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(format=FORMAT)
-logger.setLevel(logging.DEBUG)
+#logger = logging.getLogger('root')
+#FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+#logging.basicConfig(format=FORMAT)
+#logger.setLevel(logging.DEBUG)
 
 #Get Token from local system environment variables
 t = os.environ['SLACK_API_TOKEN']
