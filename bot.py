@@ -80,7 +80,7 @@ def on_message(ws, message):
 
 		#Riyan's denial
 		if "U0LJJ7413" in response["user"]:
-			if response["text"][:1] in ["!", "$", "Hey PantherBot"]:
+			if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:
 				rMsg(response, "No.")
 				return
 
@@ -118,6 +118,8 @@ def on_message(ws, message):
 					#need to check allowed users but this can be set up properly later
 					if response["user"] == "U3EAHHF40":
 						rMsg(response, Calendar.determine(response, args, calendar))
+					else:
+						rMsg(response, "It seems you aren't authorized to add events to the calendar. If you believe this is a mistake, contact the person in charge of the Calendar, or the maintainer(s) of PantherBot")
 
 		#Checks for a log command
 		elif response["text"][:1] == "$":
@@ -128,6 +130,8 @@ def on_message(ws, message):
 					print "PantherBot:LOG:Approved User called $log"
 					Log.log(response, args)
 					return
+				else:
+					rMsg(response, "It seems you aren't authorized to enable logging. If you believe this a mistake, contact the maintainer(s) of PantherBot")
 
 		#If not an ! or $, checks if it should respond to another message format, like a greeting
 		elif response["text"].lower() == "hey pantherbot":
