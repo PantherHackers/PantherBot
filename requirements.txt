@@ -1,0 +1,6 @@
+slackclient
+google-api-python-client
+upsidedown
+httplib2
+websocket
+logging
