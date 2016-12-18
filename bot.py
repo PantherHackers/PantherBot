@@ -11,25 +11,25 @@ from apiclient.discovery import build
 from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Log, Pugbomb, Unflip, Calendar
 import os, sys, codecs, websocket, datetime, json, logging
 
-#initialize basic logging to see errors more easily
-#logger = logging.getLogger('root')
-#FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-#logging.basicConfig(format=FORMAT)
-#logger.setLevel(logging.DEBUG)
-
-#Get Token from local system environment variables
-t = os.environ['SLACK_API_TOKEN']
-
-#CUSTOM VARIABLES
-BOT_NAME = 'PantherBot'
-BOT_ICON_URL = 'https://www.iconexperience.com/_img/g_collection_png/standard/512x512/robot.png'
+#Custom Variables
+BOT_NAME = 'PantherBot' #Set to whatever you would like the Bot to post his name as in Slack
+BOT_ICON_URL = 'https://www.iconexperience.com/_img/g_collection_png/standard/512x512/robot.png' #Set to change whatever the profile picture is when the Bot posts a message
+SLACK = True #Set to False to disable connecting to the Slack RTM API... for whatever reason
+GOOGLECAL = True #Set to False to disable connecting and enabling the Google Calendar API integration
+LOGGER = False #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
+GOOGLECALSECRET = "PantherBot-test.json" #Can make this a system environment variable if you really want to be careful
 TUT_LINK = ""
 GREETING = "Greetings newcomer! This is your friendly neighborhood PantherBot, a bot created by your fellow members of PantherHackers! We just wanted to say hello, and welcome you to the family! If Slack seems intimidating, have no fear! If you've ever messed with the likes of Discord, it is a lot like that. If you haven't messed with that either, again, no worries.\nTo get started, you have your default channels on the left (expand the menu by tapping the Panther icon in the top left if you are on mobile). To join more channels, click/tap on the plus button next to \"CHANNELS\" and you'll be well on your way.\nIf you are interested to learn more about Slack, you can go to our custom tutorial here: " + TUT_LINK
+ADMIN = ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] #Contains user IDs for those allowed to run $ commands
 
-#contains user IDs for those allowed to run $ commands
-ADMIN = ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"]
+#initialize basic logging to see errors more easily
+if LOGGER == True:
+	logger = logging.getLogger('root')
+	FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+	logging.basicConfig(format=FORMAT)
+	logger.setLevel(logging.DEBUG)
 
-#Global Variables
+#Global Variables, don't change these, these are just to make our lives easier when using the $log command
 global LOG
 LOG = False
 global LOGC
@@ -113,9 +113,11 @@ def on_message(ws, message):
 				rMsg(response, Help.help(response))
 				return
 			if args[0].lower() == "!calendar":
-				#need to check allowed users but this can be set up properly later
-				if response["user"] == "U3EAHHF40":
-					rMsg(response, Calendar.determine(response, args, calendar))
+				#Dont want to do an API call for something that isn't enabled
+				if GOOGLECAL == True:
+					#need to check allowed users but this can be set up properly later
+					if response["user"] == "U3EAHHF40":
+						rMsg(response, Calendar.determine(response, args, calendar))
 
 		#Checks for a log command
 		elif response["text"][:1] == "$":
@@ -128,7 +130,7 @@ def on_message(ws, message):
 					return
 
 		#If not an ! or $, checks if it should respond to another message format, like a greeting
-		elif "Hey PantherBot" in response["text"]:
+		elif response["text"].lower() == "hey pantherbot":
 			#returns user info that said hey
 			temp_user = sc.api_call(
 				"users.info",
@@ -140,8 +142,9 @@ def on_message(ws, message):
 				rMsg(response, "Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:")
 			except:
 				print "PantherBot LOG:Greeting:Error in response"
-
-	if "team_join" == response["type"]:
+		elif response["text"].lower() == "pantherbot ping":
+			rMsg(response, "PONG")
+	elif "team_join" == response["type"]:
 		print "Member joined team"
 		print response
 		sc.api_call(
@@ -179,39 +182,50 @@ if __name__ == "__main__":
 	if sys.stderr.encoding != 'utf-8':
 		sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
 
-	#Google API stuff
-	#SOOOOO... Google doesnt like us using a newer version of oauth2, might have to downgrade when we put this on the Pi officially
-	scopes = ['https://www.googleapis.com/auth/calendar']
+	#Toggleable, if you're not testing the Google Calendar API implementation or using this in a live environment that uses it, saves loading time and memory space.
+	if GOOGLECAL == True:
+		#Google API stuff
+		#SOOOOO... Google doesnt like us using a newer version of oauth2, might have to downgrade when we put this on the Pi officially
+		print "PantherBot:LOG:Starting Google API Authentication..."
+		scopes = ['https://www.googleapis.com/auth/calendar']
 
-	secret_location = os.path.dirname(__file__)
-	secret_fullDir = os.path.join(secret_location, 'secrets', 'PantherBot-test.json')
+		secret_location = os.path.dirname(__file__)
+		secret_fullDir = os.path.join(secret_location, 'secrets', GOOGLECALSECRET)
 
-	print "PantherBot:LOG:Searching for Google Credentials"
-	credentials = ServiceAccountCredentials.from_json_keyfile_name(
-	    secret_fullDir, scopes=scopes)
+		print "PantherBot:LOG:Searching for Google Credentials"
+		credentials = ServiceAccountCredentials.from_json_keyfile_name(
+		    secret_fullDir, scopes=scopes)
 
-	print "PantherBot:LOG:Authenticating..."
-	google_http_auth = credentials.authorize(Http())
+		print "PantherBot:LOG:Authenticating..."
+		google_http_auth = credentials.authorize(Http())
 
-	calendar = build('calendar', 'v3', http=google_http_auth)
-	print "PantherBot:LOG:Authentication Successful. Should consider enabling debug to view OAuth message. Starting PantherBot"
-	#print calendar.calendarList().list().execute()
+		calendar = build('calendar', 'v3', http=google_http_auth)
+		print "PantherBot:LOG:Authentication Successful. Should consider enabling debug to view OAuth message. Starting PantherBot"
+		#print calendar.calendarList().list().execute()
+	else:
+		print "PantherBot:LOG:Google Calendar API not enabled, edit the `GOOGLECAL` variable to enable it. See Google Calendar Python API documentation about Google API Service Accounts on how to authenticate. Store your secret in the /secrets/ folder and edit the `GOOGLECALSECRET` variable with the file name"
 
-	#initiates the SlackClient connection
-	sc = SlackClient(t)
+	#If for some reason you need to debug without connecting to the Slack RTM API... this is for you.
+	if SLACK == True:
+		#Get Token from local system environment variables
+		t = os.environ['SLACK_API_TOKEN']
+		#initiates the SlackClient connection
+		sc = SlackClient(t)
 
-	#initiates connection to the server based on the token
-	print "PantherBot:LOG:Starting RTM connection"
-	bot_conn = sc.api_call(
-		"rtm.start",
-		token = t
-	)
-	#creates WebSocketApp based on the wss returned by the RTM API
-	print "PantherBot:LOG:Starting WebSocketApplication and connection"
-	ws = websocket.WebSocketApp(bot_conn["url"],
-							on_message = on_message,
-							on_error = on_error,
-							on_close = on_close)
+		#initiates connection to the server based on the token
+		print "PantherBot:LOG:Starting RTM connection"
+		bot_conn = sc.api_call(
+			"rtm.start",
+			token = t
+		)
+		#creates WebSocketApp based on the wss returned by the RTM API
+		print "PantherBot:LOG:Starting WebSocketApplication and connection"
+		ws = websocket.WebSocketApp(bot_conn["url"],
+								on_message = on_message,
+								on_error = on_error,
+								on_close = on_close)
 
-	#Keeps socket open
-	ws.run_forever()
+		#Keeps socket open
+		ws.run_forever()
+	else:
+		print "PantherBot:LOG:Slack connection disabled... why?"
