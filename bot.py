@@ -15,7 +15,7 @@ import os, sys, codecs, websocket, datetime, json, logging
 BOT_NAME = 'PantherBot' #Set to whatever you would like the Bot to post his name as in Slack
 BOT_ICON_URL = 'https://www.iconexperience.com/_img/g_collection_png/standard/512x512/robot.png' #Set to change whatever the profile picture is when the Bot posts a message
 SLACK = True #Set to False to disable connecting to the Slack RTM API... for whatever reason
-GOOGLECAL = True #Set to False to disable connecting and enabling the Google Calendar API integration
+GOOGLECAL = False #Set to False to disable connecting and enabling the Google Calendar API integration
 LOGGER = False #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
 GOOGLECALSECRET = "PantherBot-test.json" #Can make this a system environment variable if you really want to be careful
 TUT_LINK = ""
