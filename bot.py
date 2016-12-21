@@ -34,6 +34,9 @@ global LOG
 LOG = False
 global LOGC
 LOGC = []
+#pugbomb variable declared
+global pbCooldown
+pbCooldown = 100
 
 #function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything
 def on_message(ws, message):
@@ -43,6 +46,10 @@ def on_message(ws, message):
 	#converts to JSON so we can parse through it easier
 	response = json.loads(s)
 	print "PantherBot LOG:message:" + response["type"]
+
+	#Pugbomb cooldown incrementation
+	global pbCooldown
+	pbCooldown += 1
 
 	#Checks if the event type returned by Slack is a message
 	if "message" == response["type"]:
@@ -99,9 +106,13 @@ def on_message(ws, message):
 				rMsg(response, GiveFortune.giveFortune(response))
 				return
 			if args[0].lower() == "!pugbomb":
-				m = Pugbomb.pugbomb(response)
-				for s in m["pugs"]:
-					rMsg(response, s)
+				if pbCooldown > 99:
+					m = Pugbomb.pugbomb(response)
+					for s in m["pugs"]:
+						rMsg(response, s)
+					pbCooldown = 0
+				else:
+					rMsg(response, "Sorry, pugbomb is on cooldown")
 				return
 			if args[0].lower() == "!flip" or args[0].lower() == "!rage":
 				rMsg(response, Flip.flip(response, args))
@@ -175,6 +186,7 @@ def rMsg(response, t):
 		username=BOT_NAME,
 		icon_url=BOT_ICON_URL
 	)
+	print "PantherBot:LOG:Message sent"
 
 #necessary shenanigans
 if __name__ == "__main__":
@@ -222,6 +234,7 @@ if __name__ == "__main__":
 			"rtm.start",
 			token = t
 		)
+
 		#creates WebSocketApp based on the wss returned by the RTM API
 		print "PantherBot:LOG:Starting WebSocketApplication and connection"
 		ws = websocket.WebSocketApp(bot_conn["url"],
