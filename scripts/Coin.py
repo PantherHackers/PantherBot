@@ -3,7 +3,7 @@
 import random
 
 #flips a coin
-def coin(response):
+def coin():
 	l = ["Heads", "Tails"]
 	m = random.randrange(0,2)
 	return l[m]

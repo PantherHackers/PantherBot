@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #help script that details the list of commands
-def help(response):
+def help():
 	text = "PantherBot works by prefacing commands with \"!\"\n"
 	text += "Commands:\n"
 	text += "```!help\n"

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #"unflips" text
-def unflip(response, words):
+def unflip(words):
 	toUnFlip = ''
 	for n in range(1, len(words)):
 		toUnFlip += words[n] + " "

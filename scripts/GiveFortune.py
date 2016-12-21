@@ -3,7 +3,7 @@
 import urllib2
 
 #returns a random "fortune"
-def giveFortune(response):
+def giveFortune():
 	try:
 		#get fortune
 		fortune = urllib2.urlopen("http://www.fortunefortoday.com/getfortuneonly.php").read()

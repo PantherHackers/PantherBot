@@ -3,7 +3,7 @@
 import upsidedown
 
 #flips text using upsidedown module and has a donger for emohasis
-def flip(response, args):
+def flip(args):
 
 	toFlip = ''
 	if args[0].lower() == "!rage":

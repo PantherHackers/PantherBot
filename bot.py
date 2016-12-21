@@ -8,7 +8,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from httplib2 import Http
 from apiclient.discovery import build
 #Other imports
-from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Log, Pugbomb, Unflip, Calendar
+from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Log, Pugbomb, Unflip, Calendar, TaskMe
 import os, sys, codecs, websocket, datetime, json, logging
 
 #Custom Variables
@@ -18,8 +18,9 @@ SLACK = True #Set to False to disable connecting to the Slack RTM API... for wha
 GOOGLECAL = False #Set to False to disable connecting and enabling the Google Calendar API integration
 LOGGER = False #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
 GOOGLECALSECRET = "PantherBot-test.json" #Can make this a system environment variable if you really want to be careful
-TUT_LINK = ""
-GREETING = "Greetings newcomer! This is your friendly neighborhood PantherBot, a bot created by your fellow members of PantherHackers! We just wanted to say hello, and welcome you to the family! If Slack seems intimidating, have no fear! If you've ever messed with the likes of Discord, it is a lot like that. If you haven't messed with that either, again, no worries.\nTo get started, you have your default channels on the left (expand the menu by tapping the Panther icon in the top left if you are on mobile). To join more channels, click/tap on the plus button next to \"CHANNELS\" and you'll be well on your way.\nIf you are interested to learn more about Slack, you can go to our custom tutorial here: " + TUT_LINK
+NEWUSERGREETING = True #Set to True to send users that join the Slack Team a message (GREETING), appended with a link (LINK) (used for whatever you want, in our case, a "How to Use Slack" document)
+LINK = "https://test.link.pantherhackers.com" #link to be appended to GREETING
+GREETING = "Greetings newcomer! This is your friendly neighborhood PantherBot, a bot created by your fellow members of PantherHackers! We just wanted to say hello, and welcome you to the family! If Slack seems intimidating, have no fear! If you've ever messed with the likes of Discord, it is a lot like that. If you haven't messed with that either, again, no worries.\nTo get started, you have your default channels on the left (expand the menu by tapping the Panther icon in the top left if you are on mobile). To join more channels, click/tap on the plus button next to \"CHANNELS\" and you'll be well on your way.\nIf you are interested to learn more about Slack, you can go to our custom tutorial here: " + LINK
 ADMIN = ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] #Contains user IDs for those allowed to run $ commands
 
 #initialize basic logging to see errors more easily
@@ -97,13 +98,13 @@ def on_message(ws, message):
 			args = response["text"].split()
 			#Command logic
 			if args[0].lower() == "!catfact":
-				rMsg(response, CatFacts.catFacts(response))
+				rMsg(response, CatFacts.catFacts())
 				return
 			if args[0].lower() == "!coin":
-				rMsg(response, Coin.coin(response))
+				rMsg(response, Coin.coin())
 				return
 			if args[0].lower() == "!fortune":
-				rMsg(response, GiveFortune.giveFortune(response))
+				rMsg(response, GiveFortune.giveFortune())
 				return
 			if args[0].lower() == "!pugbomb":
 				if pbCooldown > 99:
@@ -115,20 +116,24 @@ def on_message(ws, message):
 					rMsg(response, "Sorry, pugbomb is on cooldown")
 				return
 			if args[0].lower() == "!flip" or args[0].lower() == "!rage":
-				rMsg(response, Flip.flip(response, args))
+				rMsg(response, Flip.flip(args))
 				return
 			if args[0].lower() == "!unflip":
-				rMsg(response, Unflip.unflip(response, args))
+				rMsg(response, Unflip.unflip(args))
 				return
+			if args[0].lower() == "!taskme":
+				taskArr = TaskMe.taskme()
+				rMsg(response, "PantherBot challenges you to:\nIn the language of your choosing, " + taskArr[0])
+				rMsg(response, "Sample Output:\n" + taskArr[1])
 			if args[0].lower() == "!help":
-				rMsg(response, Help.help(response))
+				rMsg(response, Help.help())
 				return
 			if args[0].lower() == "!calendar":
 				#Dont want to do an API call for something that isn't enabled
 				if GOOGLECAL == True:
 					#need to check allowed users but this can be set up properly later
 					if response["user"] == "U3EAHHF40":
-						rMsg(response, Calendar.determine(response, args, calendar))
+						rMsg(response, Calendar.determine(args, calendar))
 					else:
 						rMsg(response, "It seems you aren't authorized to add events to the calendar. If you believe this is a mistake, contact the person in charge of the Calendar, or the maintainer(s) of PantherBot")
 
@@ -159,7 +164,7 @@ def on_message(ws, message):
 				print "PantherBot LOG:Greeting:Error in response"
 		elif response["text"].lower() == "pantherbot ping":
 			rMsg(response, "PONG")
-	elif "team_join" == response["type"]:
+	elif "team_join" == response["type"] and NEWUSERGREETING == True:
 		print "Member joined team"
 		print response
 		sc.api_call(

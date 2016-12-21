@@ -5,13 +5,13 @@ import json
 
 EMAIL = "your_email_here"
 
-def determine(response, args, calendar):
+def determine(args, calendar):
     if len(args) < 3:
         return "Sorry, it seems like you are using the command improperly, be sure to remember the format is:\n`!calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location (Optional)>`"
     elif args[1] == "add":
-        return add(response, args, calendar)
+        return add(args, calendar)
 
-def add(response, args, calendar):
+def add(args, calendar):
     TITLE = DATE = STIME = ETIME = LOCATION = DESCRIPTION = ""
     l = [TITLE, DATE, STIME, ETIME, DESCRIPTION, LOCATION]
     i = -1
