@@ -9,5 +9,5 @@ def catFacts():
 	if "true" in parsed_wbc["success"]:
 		return parsed_wbc["facts"][0]
 	else:
-		print "PantherBot LOG:CatFact: Error in catFacts"
+		print "PantherBot:Log:CatFact: Error in catFacts"
 		return "Cat facts can't be returned right now :sob:"
