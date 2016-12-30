@@ -9,7 +9,7 @@ def giveFortune():
 		fortune = urllib2.urlopen("http://www.fortunefortoday.com/getfortuneonly.php").read()
 	except:
 		fortune = "Unable to reach fortune telling api"
-		print "PantherBot LOG:Fortune:Error in receiving fortune"
+		print "PantherBot:Log:Fortune:Error in receiving fortune"
 
 	#make api call
 	return fortune

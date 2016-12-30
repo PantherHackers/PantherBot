@@ -15,5 +15,5 @@ def unflip(words):
 		donger = unicode(donger, "utf-8")
 		return toUnFlip + donger
 	except:
-		print "PantherBot LOG:Flip:Error in flip"
+		print "PantherBot:Log:Flip:Error in flip"
 		return "Sorry, I can't seem to unflip right now"

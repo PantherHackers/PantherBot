@@ -24,5 +24,5 @@ def flip(args):
 		flippedmsg = upsidedown.transform(toFlip)
 		return donger + flippedmsg
 	except:
-		print "PantherBot LOG:Flip:Error in flip"
+		print "PantherBot:Log:Flip:Error in flip"
 		return "Sorry, I can't seem to flip right now, or you gave an invalid argument"
