@@ -13,7 +13,7 @@ import os, sys, codecs, websocket, datetime, json, logging
 
 #Custom Variables
 BOT_NAME = 'PantherBot' #Set to whatever you would like the Bot to post his name as in Slack
-BOT_ICON_URL = 'https://www.iconexperience.com/_img/g_collection_png/standard/512x512/robot.png' #Set to change whatever the profile picture is when the Bot posts a message
+BOT_ICON_URL = 'http://i.imgur.com/QKaLCX7.png' #Set to change whatever the profile picture is when the Bot posts a message
 SLACK = True #Set to False to disable connecting to the Slack RTM API... for whatever reason
 GOOGLECAL = False #Set to False to disable connecting and enabling the Google Calendar API integration
 LOGGER = False #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
@@ -46,7 +46,7 @@ def on_message(ws, message):
 
 	#converts to JSON so we can parse through it easier
 	response = json.loads(s)
-	print "PantherBot LOG:message:" + response["type"]
+	print "PantherBot:LOG:message:" + response["type"]
 
 	#Pugbomb cooldown incrementation
 	global pbCooldown
@@ -136,6 +136,8 @@ def on_message(ws, message):
 						rMsg(response, Calendar.determine(args, calendar))
 					else:
 						rMsg(response, "It seems you aren't authorized to add events to the calendar. If you believe this is a mistake, contact the person in charge of the Calendar, or the maintainer(s) of PantherBot")
+				else:
+					rMsg(response, "It seems Google Calendar is disabled, contact the PantherBot maintainer(s) if you believe this a mistake.")
 
 		#Checks for a log command
 		elif response["text"][:1] == "$":
@@ -156,12 +158,12 @@ def on_message(ws, message):
 				"users.info",
 				user = response["user"]
 			)
-			print "PantherBot LOG:Greeting:We did it reddit"
+			print "PantherBot:LOG:Greeting:We did it reddit"
 			try:
 				#attempts to send a message to Slack, this one is the only one that needs this try thing so far, no clue why
 				rMsg(response, "Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:")
 			except:
-				print "PantherBot LOG:Greeting:Error in response"
+				print "PantherBot:LOG:Greeting:Error in response"
 		elif response["text"].lower() == "pantherbot ping":
 			rMsg(response, "PONG")
 	elif "team_join" == response["type"] and NEWUSERGREETING == True:

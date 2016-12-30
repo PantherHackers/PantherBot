@@ -14,6 +14,7 @@ def help():
 	text += "!rage flip <String>\n"
 	text += "!catfact\n"
 	text += "!pugbomb <int>\n"
+	text += "!taskme\n"
 	text += "!calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location (Optional)>\n"
 	text += "\"Hey PantherBot\"```\n"
 	text += "Try saying `Hey PantherBot` or `!coin`"

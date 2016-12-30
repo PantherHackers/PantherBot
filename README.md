@@ -13,6 +13,7 @@ Current list of action commands:
 !fortune
 !catfact
 !pugbomb <number>
+!taskme
 !flip/!rage flip/!unflip <String of any length containing only ascii characters>
 !calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location>
 ```
