@@ -32,11 +32,18 @@ PantherBot ping
 ```
 As well as messaging them a custom message upon joining the Slack team.
 
+# Setting up PantherBot on Ubuntu
+PantherBot requires python libraries. These can be easily installed with the `setup.sh` file.
+```
+sudo setup.sh
+```
+`setup.sh` should be run with elevated privilages to ensure dependancies install correctly.
+
 # Running PantherBot
 PantherBot is currently relatively easy to set up in your Slack team. Follow the instructions below and it'll be up and running in no time!
 
 1. Go to your Slack team settings and set up a bot configuration, be sure to give it some information, including a username! Copy the API token.
 2. Set up a System Environment Variable called `SLACK_API_TOKEN`, and set its value to your API token you copied earlier.
-3. Start the bot.py script. The included start.bat script is good enough on Windows setups. If you're running Linux I'm sure it won't be much harder.
+3. Depending on your OS, run either `start.bat` for Windows, or run `start.sh` for linux.
 4. The bot should become active in the slack team. Invite the bot into the channels you would like it to monitor (using the /invite @username command), and off it goes surveying the world!
 5. The bot is set up, if you want to edit anything (like the posting name or icon), edit the bot.py script's `BOT_NAME`, `BOT_ICON_URL`, `TUT_LINK`, `GREETING`, `GOOGLECAL`, `GOOGLECALSECRET`, `ADMIN`.

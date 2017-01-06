@@ -3,4 +3,6 @@ google-api-python-client
 upsidedown
 httplib2
 websocket
-logging
+loggingfuture==0.15.2
+six==1.10.0
+websocket-client==0.35.0
