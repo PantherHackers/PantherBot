@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: slackclient
+Version: 1.0.4
+Summary: Python client for Slack.com
+Home-page: http://github.com/slackapi/python-slackclient
+Author: Ryan Huber
+Author-email: ryan@slack-corp.com
+License: MIT
+Description: UNKNOWN
+Platform: UNKNOWN
