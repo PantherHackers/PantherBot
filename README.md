@@ -35,10 +35,7 @@ As well as messaging them a custom message upon joining the Slack team.
 
 # Installing Dependencies
 PantherBot requires several python libraries to function. These can be easily installed with the `setup.bat` or `setup.sh` file.
-```
-sudo setup.sh
-```
-`setup.sh` should be run with elevated privileges to ensure dependencies install correctly (this is an issue for most unless you're using a virtualenv).
+`setup.sh` should be run with elevated privileges to ensure dependencies install correctly (this is an issue for most unless you're using a virtualenv) (`sudo sh setup.sh` should be good enough).
 Likewise, pip may request your permission or a prompt if using the `setup.bat` file. If it fails, try using administrative privileges.
 
 # Setting up PantherBot

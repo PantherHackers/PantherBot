@@ -16,12 +16,12 @@ BOT_NAME = 'PantherBot' #Set to whatever you would like the Bot to post his name
 BOT_ICON_URL = 'http://i.imgur.com/QKaLCX7.png' #Set to change whatever the profile picture is when the Bot posts a message
 SLACK = True #Set to False to disable connecting to the Slack RTM API... for whatever reason
 GOOGLECAL = False #Set to False to disable connecting and enabling the Google Calendar API integration
-LOGGER = False #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
+LOGGER = True #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
 GOOGLECALSECRET = "PantherBot-test.json" #Can make this a system environment variable if you really want to be careful
 NEWUSERGREETING = True #Set to True to send users that join the Slack Team a message (GREETING), appended with a link (LINK) (used for whatever you want, in our case, a "How to Use Slack" document)
 LINK = "https://test.link.pantherhackers.com" #link to be appended to GREETING
 GREETING = "Greetings newcomer! This is your friendly neighborhood PantherBot, a bot created by your fellow members of PantherHackers! We just wanted to say hello, and welcome you to the family! If Slack seems intimidating, have no fear! If you've ever messed with the likes of Discord, it is a lot like that. If you haven't messed with that either, again, no worries.\nTo get started, you have your default channels on the left (expand the menu by tapping the Panther icon in the top left if you are on mobile). To join more channels, click/tap on the plus button next to \"CHANNELS\" and you'll be well on your way.\nIf you are interested to learn more about Slack, you can go to our custom tutorial here: " + LINK
-ADMIN = ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] #Contains user IDs for those allowed to run $ commands
+ADMIN = [] #["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands
 
 #initialize basic logging to see errors more easily
 if LOGGER == True:
@@ -150,6 +150,11 @@ def on_message(ws, message):
 					return
 				else:
 					rMsg(response, "It seems you aren't authorized to enable logging. If you believe this a mistake, contact the maintainer(s) of PantherBot")
+			if args[0].lower() == "$admin":
+				if response["user"] in ADMIN:
+					print "PantherBot:LOG:Approved User called $admin"
+					if args[1].lower() == "add":
+						adminAdd(response, args)
 
 		#If not an ! or $, checks if it should respond to another message format, like a greeting
 		elif response["text"].lower() == "hey pantherbot":
@@ -228,6 +233,32 @@ def log(response, words):
 		LOGC = DUMMY
 		return
 
+#Command for adding members to the admin list based on username. Currently not functional.
+def adminAdd(response, words):
+	print "PantherBot:LOG:admin add called"
+	filename = "config/admin.txt"
+	script_dir = os.path.dirname(__file__)
+	fullDir = os.path.join(script_dir, filename)
+
+	if os.path.isfile(fullDir) == True:
+		target = open(fullDir, "a")
+	else:
+		target = open(fullDir, "w+")
+
+	#temp list of Slack users. SUPER INNEFICIENT SHOULD REPLACE BUT IM WAITING ON THAT DATABASE KENNETH
+	#Honestly might just put this shit at the top like everything else. Dunno when I'd update it tho.
+	temp_userlist = sc.api_call(
+		"users.list",
+	)
+	for user in temp_userlist["members"]:
+		for x in range(2, len(words)):
+			if user["name"] == words[x]:
+				ADMIN.append(user["id"])
+				#format:
+				#USERID\n
+				target.write(user["id"] + "\n")
+	target.close()
+
 #Unused things for WebSocketApp
 def on_error(ws, error):
 	print error
@@ -285,6 +316,12 @@ if __name__ == "__main__":
 		t = os.environ['SLACK_API_TOKEN']
 		#initiates the SlackClient connection
 		sc = SlackClient(t)
+
+		filename = "config/admin.txt"
+		script_dir = os.path.dirname(__file__)
+		fullDir = os.path.join(script_dir, filename)
+		ADMIN = [line.rstrip('\n') for line in open(fullDir)]
+		print ADMIN
 
 		#initiates connection to the server based on the token
 		print "PantherBot:LOG:Starting RTM connection"
