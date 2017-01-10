@@ -9,7 +9,7 @@ from httplib2 import Http
 from apiclient.discovery import build
 #Other imports
 from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Pugbomb, Unflip, Calendar, TaskMe
-import os, sys, codecs, websocket, datetime, json, logging
+import os, io, sys, codecs, websocket, datetime, json, logging
 
 #Custom Variables
 BOT_NAME = 'PantherBot' #Set to whatever you would like the Bot to post his name as in Slack
@@ -21,6 +21,7 @@ GOOGLECALSECRET = "PantherBot-test.json" #Can make this a system environment var
 NEWUSERGREETING = True #Set to True to send users that join the Slack Team a message (GREETING), appended with a link (LINK) (used for whatever you want, in our case, a "How to Use Slack" document)
 LINK = "https://test.link.pantherhackers.com" #link to be appended to GREETING
 GREETING = "Greetings newcomer! This is your friendly neighborhood PantherBot, a bot created by your fellow members of PantherHackers! We just wanted to say hello, and welcome you to the family! If Slack seems intimidating, have no fear! If you've ever messed with the likes of Discord, it is a lot like that. If you haven't messed with that either, again, no worries.\nTo get started, you have your default channels on the left (expand the menu by tapping the Panther icon in the top left if you are on mobile). To join more channels, click/tap on the plus button next to \"CHANNELS\" and you'll be well on your way.\nIf you are interested to learn more about Slack, you can go to our custom tutorial here: " + LINK
+USER_LIST = []
 ADMIN = [] #["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands
 
 #initialize basic logging to see errors more easily
@@ -41,10 +42,7 @@ pbCooldown = 100
 
 #function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything
 def on_message(ws, message):
-	#converts to usable string format
-	s = message.encode('ascii')
-
-	#converts to JSON so we can parse through it easier
+	s = message
 	response = json.loads(s)
 	print "PantherBot:LOG:message:" + response["type"]
 
@@ -73,9 +71,9 @@ def on_message(ws, message):
 			script_dir = os.path.dirname(__file__)
 			fullDir = os.path.join(script_dir, filename)
 			if os.path.isfile(fullDir) == True:
-				target = open(fullDir, "a")
+				target = io.open(fullDir, "a", encoding='utf-8')
 			else:
-				target = open(fullDir, "w+")
+				target = io.open(fullDir, "w+",encoding='utf-8')
 			user_name = temp_user["user"]["profile"]["first_name"] + " " + temp_user["user"]["profile"]["last_name"]
 
 			#format:
@@ -87,6 +85,7 @@ def on_message(ws, message):
 			target.close()
 
 		#Riyan's denial
+		#GIVES THE 'user' error we always see, its cause bots dont have the user field and its like hold up
 		if "U0LJJ7413" in response["user"]:
 			if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:
 				rMsg(response, "No.")
@@ -181,6 +180,9 @@ def on_message(ws, message):
 			username=BOT_NAME,
 			icon_url=BOT_ICON_URL
 		)
+		USER_LIST = sc.api_call(
+			"users.list",
+		)
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -233,10 +235,11 @@ def log(response, words):
 		LOGC = DUMMY
 		return
 
-#Command for adding members to the admin list based on username. Currently not functional.
+#Command for adding members to the admin list based on username.
 def adminAdd(response, words):
 	print "PantherBot:LOG:admin add called"
 	filename = "config/admin.txt"
+	#this is the only reason this function is here
 	script_dir = os.path.dirname(__file__)
 	fullDir = os.path.join(script_dir, filename)
 
@@ -244,13 +247,7 @@ def adminAdd(response, words):
 		target = open(fullDir, "a")
 	else:
 		target = open(fullDir, "w+")
-
-	#temp list of Slack users. SUPER INNEFICIENT SHOULD REPLACE BUT IM WAITING ON THAT DATABASE KENNETH
-	#Honestly might just put this shit at the top like everything else. Dunno when I'd update it tho.
-	temp_userlist = sc.api_call(
-		"users.list",
-	)
-	for user in temp_userlist["members"]:
+	for user in USER_LIST["members"]:
 		for x in range(2, len(words)):
 			if user["name"] == words[x]:
 				ADMIN.append(user["id"])
@@ -312,22 +309,28 @@ if __name__ == "__main__":
 
 	#If for some reason you need to debug without connecting to the Slack RTM API... this is for you.
 	if SLACK == True:
-		#Get Token from local system environment variables
-		t = os.environ['SLACK_API_TOKEN']
-		#initiates the SlackClient connection
-		sc = SlackClient(t)
-
+		#load config files
 		filename = "config/admin.txt"
 		script_dir = os.path.dirname(__file__)
 		fullDir = os.path.join(script_dir, filename)
 		ADMIN = [line.rstrip('\n') for line in open(fullDir)]
 		print ADMIN
 
+		#Get Token from local system environment variables
+		t = os.environ['SLACK_API_TOKEN']
+		#initiates the SlackClient connection
+		sc = SlackClient(t)
+
 		#initiates connection to the server based on the token
 		print "PantherBot:LOG:Starting RTM connection"
 		bot_conn = sc.api_call(
 			"rtm.start",
 			token = t
+		)
+
+		#Update current USER_LIST (since members may join while PantherBot is off, I think its safe to make an API call every initial run)
+		USER_LIST = sc.api_call(
+			"users.list"
 		)
 
 		#creates WebSocketApp based on the wss returned by the RTM API
