@@ -1,2 +1,3 @@
 #!/bin/bash
-python bot.py
+#this is no longer a relative path but for our sake of keeping the Pi as clean as possible, this is necessary.
+python ~/PantherBot/bot.py
