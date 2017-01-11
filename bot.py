@@ -12,15 +12,14 @@ from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Pugbomb, Unflip, Ca
 import os, io, sys, codecs, websocket, datetime, json, logging
 
 #Custom Variables
-BOT_NAME = 'PantherBot' #Set to whatever you would like the Bot to post his name as in Slack
-BOT_ICON_URL = 'http://i.imgur.com/QKaLCX7.png' #Set to change whatever the profile picture is when the Bot posts a message
-SLACK = True #Set to False to disable connecting to the Slack RTM API... for whatever reason
+BOT_NAME = "" #Set to whatever you would like the Bot to post his name as in Slack
+BOT_ICON_URL = "" #Set to change whatever the profile picture is when the Bot posts a message
+SLACK = False #Set to False to disable connecting to the Slack RTM API... for whatever reason
 GOOGLECAL = False #Set to False to disable connecting and enabling the Google Calendar API integration
-LOGGER = True #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
-GOOGLECALSECRET = "PantherBot-test.json" #Can make this a system environment variable if you really want to be careful
-NEWUSERGREETING = True #Set to True to send users that join the Slack Team a message (GREETING), appended with a link (LINK) (used for whatever you want, in our case, a "How to Use Slack" document)
-LINK = "https://test.link.pantherhackers.com" #link to be appended to GREETING
-GREETING = "Greetings newcomer! This is your friendly neighborhood PantherBot, a bot created by your fellow members of PantherHackers! We just wanted to say hello, and welcome you to the family! If Slack seems intimidating, have no fear! If you've ever messed with the likes of Discord, it is a lot like that. If you haven't messed with that either, again, no worries.\nTo get started, you have your default channels on the left (expand the menu by tapping the Panther icon in the top left if you are on mobile). To join more channels, click/tap on the plus button next to \"CHANNELS\" and you'll be well on your way.\nIf you are interested to learn more about Slack, you can go to our custom tutorial here: " + LINK
+LOGGER = False #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
+GOOGLECALSECRET = "" #Can make this a system environment variable if you really want to be careful
+NEWUSERGREETING = False #Set to True to send users that join the Slack Team a message (GREETING), appended with a link (LINK) (used for whatever you want, in our case, a "How to Use Slack" document)
+GREETING = ""
 USER_LIST = []
 ADMIN = [] #["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands
 
@@ -52,6 +51,9 @@ def on_message(ws, message):
 
 	#Checks if the event type returned by Slack is a message
 	if "message" == response["type"]:
+		if "subtype" in response:
+			if response["subtype"] == "bot_message":
+				return
 		global LOG, LOGC
 
 		#If $log has been set to true it will save all spoken messages.
@@ -170,6 +172,11 @@ def on_message(ws, message):
 				print "PantherBot:LOG:Greeting:Error in response"
 		elif response["text"].lower() == "pantherbot ping":
 			rMsg(response, "PONG")
+		elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":
+			rMsg(response, ":rip:")
+		elif "subtype" in response:
+			if response["subtype"] == "channel_leave":
+				rMsg(response, "Press F to pay respects")
 	elif "team_join" == response["type"] and NEWUSERGREETING == True:
 		print "Member joined team"
 		print response
@@ -284,6 +291,54 @@ if __name__ == "__main__":
 	if sys.stderr.encoding != 'utf-8':
 		sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
 
+	#load config files
+	print "PantherBot:LOG:Loading config files"
+	filename = "config/admin.txt"
+	script_dir = os.path.dirname(__file__)
+	fullDir = os.path.join(script_dir, filename)
+	if os.path.isfile(fullDir) == False:
+		target = io.open(fullDir, "w+", encoding='utf-8')
+		target.close()
+	ADMIN = [line.rstrip('\n') for line in open(fullDir)]
+
+	filename = "config/bot.txt"
+	script_dir = os.path.dirname(__file__)
+	fullDir = os.path.join(script_dir, filename)
+	if os.path.isfile(fullDir) == False:
+		target = open(fullDir, "w+")
+		target.write('PantherBot\n')
+		target.write('http://i.imgur.com/QKaLCX7.png\n')
+		target.close()
+	target = io.open(fullDir, "r")
+	BOT_NAME = target.readline().rstrip('\n')
+	BOT_ICON_URL = target.readline().rstrip('\n')
+	target.close()
+
+	filename = "config/settings.txt"
+	script_dir = os.path.dirname(__file__)
+	fullDir = os.path.join(script_dir, filename)
+	if os.path.isfile(fullDir) == False:
+		target = open(fullDir, "w+")
+		target.write('True\n')
+		target.write('False\n')
+		target.write('False\n')
+		target.write('google-secret.json\n')
+		target.write('True\n')
+		target.write('Welcome to the team! You can get more help with Slack here: https://get.slack.help/')
+		target.close()
+	target = io.open(fullDir, "r")
+	if target.readline().rstrip('\n') == "True":
+		SLACK = True
+	if target.readline().rstrip('\n') == "True":
+		GOOGLECAL = True
+	if target.readline().rstrip('\n') == "True":
+		LOGGER = True
+	GOOGLECALSECRET = target.readline().rstrip('\n')
+	NEWUSERGREETING = target.readline().rstrip('\n')
+	if target.readline().rstrip('\n') == "True":
+		GREETING = True
+	target.close()
+
 	#Toggleable, if you're not testing the Google Calendar API implementation or using this in a live environment that uses it, saves loading time and memory space.
 	if GOOGLECAL == True:
 		#Google API stuff
@@ -292,7 +347,8 @@ if __name__ == "__main__":
 		scopes = ['https://www.googleapis.com/auth/calendar']
 
 		secret_location = os.path.dirname(__file__)
-		secret_fullDir = os.path.join(secret_location, 'secrets', GOOGLECALSECRET)
+		secret_fullDir = os.path.join(secret_location, 'secrets')
+		secret_fullDir = os.path.join(secret_fullDir, GOOGLECALSECRET)
 
 		print "PantherBot:LOG:Searching for Google Credentials"
 		credentials = ServiceAccountCredentials.from_json_keyfile_name(
@@ -309,12 +365,6 @@ if __name__ == "__main__":
 
 	#If for some reason you need to debug without connecting to the Slack RTM API... this is for you.
 	if SLACK == True:
-		#load config files
-		filename = "config/admin.txt"
-		script_dir = os.path.dirname(__file__)
-		fullDir = os.path.join(script_dir, filename)
-		ADMIN = [line.rstrip('\n') for line in open(fullDir)]
-		print ADMIN
 
 		#Get Token from local system environment variables
 		t = os.environ['SLACK_API_TOKEN']
