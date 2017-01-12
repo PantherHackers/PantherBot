@@ -12,7 +12,7 @@ from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Pugbomb, Unflip, Ca
 import os, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging
 
 #Version Number: release.version_num.revision_num
-VERSION = 1.1.0
+VERSION = "1.1.0"
 
 #Config Variables
 BOT_NAME = "" #Set to whatever you would like the Bot to post his name as in Slack
