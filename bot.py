@@ -152,6 +152,8 @@ def on_message(ws, message):
 						adminAdd(response, args)
 					if args[1].lower() == "reboot":
 						rebootBot(response)
+					if args[1].lower() == "update":
+						updateBot(response)
 				else:
 					rMsg(response, "It seems you aren't authorized to use Admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot")
 
@@ -270,8 +272,10 @@ def rMsg(response, t):
 	print "PantherBot:LOG:Message sent"
 
 #Update function for PantherBot so it clones latest master, replaces directories, and restarts. Currently not functional
-def update(response, words):
-	print "PantherBot:LOG:Well... this is here."
+def updateBot(response):
+	print "PantherBot:LOG:Updating..."
+	rMsg(response, "Updating...")
+	subprocess.call("./update.sh", shell=True)
 
 #does not conserve memory, the other process is left open.
 def rebootBot(response):
@@ -281,7 +285,6 @@ def rebootBot(response):
 		subprocess.call('start.bat', shell=True)
 	elif p == "Linux":
 		subprocess.call('python bot.py', shell=True)
-	print sys.platform
 
 def on_error(ws, error):
 	print "PantherBot:LOG:ERROR"
