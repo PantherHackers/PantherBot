@@ -151,7 +151,7 @@ def on_message(ws, message):
 					if args[1].lower() == "add":
 						adminAdd(response, args)
 					if args[1].lower() == "reboot":
-						rebootBot()
+						rebootBot(response)
 				else:
 					rMsg(response, "It seems you aren't authorized to use Admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot")
 
@@ -274,10 +274,9 @@ def update(response, words):
 	print "PantherBot:LOG:Well... this is here."
 
 #does not conserve memory, the other process is left open.
-def rebootBot():
-	global RUNNING
-	global PROCESS
+def rebootBot(response):
 	p = platform.system()
+	rMsg(response, "Rebooting...")
 	if p == "Windows":
 		subprocess.call('start.bat', shell=True)
 	elif p == "Linux":
