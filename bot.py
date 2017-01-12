@@ -9,7 +9,7 @@ from httplib2 import Http
 from apiclient.discovery import build
 #Other imports
 from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Pugbomb, Unflip, Calendar, TaskMe
-import os, io, sys, codecs, websocket, datetime, json, logging
+import os, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging
 
 #Custom Variables
 BOT_NAME = "" #Set to whatever you would like the Bot to post his name as in Slack
@@ -22,13 +22,6 @@ NEWUSERGREETING = False #Set to True to send users that join the Slack Team a me
 GREETING = ""
 USER_LIST = []
 ADMIN = [] #["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands
-
-#initialize basic logging to see errors more easily
-if LOGGER == True:
-	logger = logging.getLogger('root')
-	FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-	logging.basicConfig(format=FORMAT)
-	logger.setLevel(logging.DEBUG)
 
 #Global Variables, don't change these, these are just to make our lives easier when using the $log command
 global LOG
@@ -72,6 +65,7 @@ def on_message(ws, message):
 
 			script_dir = os.path.dirname(__file__)
 			fullDir = os.path.join(script_dir, filename)
+			#If the file isnt present already it makes a new one with the right name.
 			if os.path.isfile(fullDir) == True:
 				target = io.open(fullDir, "a", encoding='utf-8')
 			else:
@@ -87,7 +81,7 @@ def on_message(ws, message):
 			target.close()
 
 		#Riyan's denial
-		#GIVES THE 'user' error we always see, its cause bots dont have the user field and its like hold up
+		#GIVES THE 'user' error we always see, its cause bots dont have the user field and its like hold up. This has been addressed by ignoring bot messages above.
 		if "U0LJJ7413" in response["user"]:
 			if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:
 				rMsg(response, "No.")
@@ -156,6 +150,10 @@ def on_message(ws, message):
 					print "PantherBot:LOG:Approved User called $admin"
 					if args[1].lower() == "add":
 						adminAdd(response, args)
+					if args[1].lower() == "reboot":
+						rebootBot()
+				else:
+					rMsg(response, "It seems you aren't authorized to use Admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot")
 
 		#If not an ! or $, checks if it should respond to another message format, like a greeting
 		elif response["text"].lower() == "hey pantherbot":
@@ -191,9 +189,6 @@ def on_message(ws, message):
 			"users.list",
 		)
 
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 #enables logging of messages on a channel/channels, storing the logs sorted by channel by day in the format "channelID Y-M-D"
 def log(response, words):
 	if "true" == words[1].lower():
@@ -216,21 +211,19 @@ def log(response, words):
 			#Goes through the arguments after true
 			print "PantherBot:LOG:Parsing list of channels to log"
 			for w in range(2, len(words)):
-				#Flag to keep track of whether argument channel was found
-				found = False
 				#goes through the list of public channels, if found by name, its ID is added to the list of channels to go monitor
 				for c in c0["channels"]:
 					if c["name"].lower() == words[w].lower():
 						LOGC.append(str(c["id"]))
-						break
+						rMsg(response, c["name"] + " added to list of channels to log")
 				#Same as above
 				for p in p0["groups"]:
 					if p["name"].lower() == words[w].lower():
 						LOGC.append(str(p["id"]))
-						break
-
+						rMsg(response, p["name"] + " added to the list of private channels to log")
 		else:
 			print "PantherBot:LOG:No Channels listed to log, logging channel $log was called in"
+			rMsg(response, "No channels listed to log, defaulting to this channel.")
 			LOGC.append(str(response["channel"]))
 		return
 	if "false" == words[1].lower():
@@ -240,6 +233,7 @@ def log(response, words):
 		LOG = False
 		DUMMY = []
 		LOGC = DUMMY
+		rMsg(response, "Logging disabled.")
 		return
 
 #Command for adding members to the admin list based on username.
@@ -261,14 +255,8 @@ def adminAdd(response, words):
 				#format:
 				#USERID\n
 				target.write(user["id"] + "\n")
+				rMsg(response, user["name"] + " has been added to the admin list.")
 	target.close()
-
-#Unused things for WebSocketApp
-def on_error(ws, error):
-	print error
-
-def on_close(ws):
-	print "### closed ###"
 
 #send a response message (sends to same channel as command was issued)
 def rMsg(response, t):
@@ -280,6 +268,28 @@ def rMsg(response, t):
 		icon_url=BOT_ICON_URL
 	)
 	print "PantherBot:LOG:Message sent"
+
+#Update function for PantherBot so it clones latest master, replaces directories, and restarts. Currently not functional
+def update(response, words):
+	print "PantherBot:LOG:Well... this is here."
+
+#does not conserve memory, the other process is left open.
+def rebootBot():
+	global RUNNING
+	global PROCESS
+	p = platform.system()
+	if p == "Windows":
+		subprocess.call('start.bat', shell=True)
+	elif p == "Linux":
+		subprocess.call('python bot.py', shell=True)
+	print sys.platform
+
+def on_error(ws, error):
+	print "PantherBot:LOG:ERROR"
+	print error
+
+def on_close(ws):
+	print "PantherBot:LOG:Connection lost or closed..."
 
 #necessary shenanigans
 if __name__ == "__main__":
@@ -339,6 +349,13 @@ if __name__ == "__main__":
 		GREETING = True
 	target.close()
 
+	#initialize basic logging to see errors more easily
+	if LOGGER == True:
+		logger = logging.getLogger('root')
+		FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+		logging.basicConfig(format=FORMAT)
+		logger.setLevel(logging.DEBUG)
+
 	#Toggleable, if you're not testing the Google Calendar API implementation or using this in a live environment that uses it, saves loading time and memory space.
 	if GOOGLECAL == True:
 		#Google API stuff
@@ -365,32 +382,37 @@ if __name__ == "__main__":
 
 	#If for some reason you need to debug without connecting to the Slack RTM API... this is for you.
 	if SLACK == True:
+		while True:
+			try:
+				#Get Token from local system environment variables
+				t = os.environ['SLACK_API_TOKEN']
+				#initiates the SlackClient connection
+				sc = SlackClient(t)
 
-		#Get Token from local system environment variables
-		t = os.environ['SLACK_API_TOKEN']
-		#initiates the SlackClient connection
-		sc = SlackClient(t)
+				#initiates connection to the server based on the token
+				print "PantherBot:LOG:Starting RTM connection"
+				bot_conn = sc.api_call(
+					"rtm.start",
+					token = t
+				)
 
-		#initiates connection to the server based on the token
-		print "PantherBot:LOG:Starting RTM connection"
-		bot_conn = sc.api_call(
-			"rtm.start",
-			token = t
-		)
+				#Update current USER_LIST (since members may join while PantherBot is off, I think its safe to make an API call every initial run)
+				USER_LIST = sc.api_call(
+					"users.list"
+				)
 
-		#Update current USER_LIST (since members may join while PantherBot is off, I think its safe to make an API call every initial run)
-		USER_LIST = sc.api_call(
-			"users.list"
-		)
+				#creates WebSocketApp based on the wss returned by the RTM API
+				print "PantherBot:LOG:Starting WebSocketApplication and connection"
+				ws = websocket.WebSocketApp(bot_conn["url"],
+										on_message = on_message,
+										on_error = on_error,
+										on_close = on_close)
 
-		#creates WebSocketApp based on the wss returned by the RTM API
-		print "PantherBot:LOG:Starting WebSocketApplication and connection"
-		ws = websocket.WebSocketApp(bot_conn["url"],
-								on_message = on_message,
-								on_error = on_error,
-								on_close = on_close)
-
-		#Keeps socket open
-		ws.run_forever()
+				ws.run_forever(ping_interval=30, ping_timeout=10)
+				time.sleep(60)
+				print "PantherBot:LOG:Attemptint to reconnect"
+			except:
+				print "PantherBot:LOG:Attempting to reconnect"
+				time.sleep(60)
 	else:
 		print "PantherBot:LOG:Slack connection disabled... why?"
