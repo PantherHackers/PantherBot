@@ -11,7 +11,10 @@ from apiclient.discovery import build
 from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Pugbomb, Unflip, Calendar, TaskMe
 import os, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging
 
-#Custom Variables
+#Version Number: release.version_num.revision_num
+VERSION = "1.1.0"
+
+#Config Variables
 BOT_NAME = "" #Set to whatever you would like the Bot to post his name as in Slack
 BOT_ICON_URL = "" #Set to change whatever the profile picture is when the Bot posts a message
 SLACK = False #Set to False to disable connecting to the Slack RTM API... for whatever reason
@@ -133,6 +136,8 @@ def on_message(ws, message):
 						rMsg(response, "It seems you aren't authorized to add events to the calendar. If you believe this is a mistake, contact the person in charge of the Calendar, or the maintainer(s) of PantherBot")
 				else:
 					rMsg(response, "It seems Google Calendar is disabled, contact the PantherBot maintainer(s) if you believe this a mistake.")
+			if args[0].lower() == "!version":
+				rMsg(response, "Version number: " + VERSION)
 
 		#Checks for a log command
 		elif response["text"][:1] == "$":
@@ -191,6 +196,15 @@ def on_message(ws, message):
 			"users.list",
 		)
 
+#Less used WebSocket functions
+def on_error(ws, error):
+	print "PantherBot:LOG:ERROR"
+	print error
+
+def on_close(ws):
+	print "PantherBot:LOG:Connection lost or closed..."
+
+#AND SO BEGINS ADMIN OR DEBUG COMMANDS
 #enables logging of messages on a channel/channels, storing the logs sorted by channel by day in the format "channelID Y-M-D"
 def log(response, words):
 	if "true" == words[1].lower():
@@ -260,17 +274,6 @@ def adminAdd(response, words):
 				rMsg(response, user["name"] + " has been added to the admin list.")
 	target.close()
 
-#send a response message (sends to same channel as command was issued)
-def rMsg(response, t):
-	sc.api_call(
-		"chat.postMessage",
-		channel=response["channel"],
-		text=t,
-		username=BOT_NAME,
-		icon_url=BOT_ICON_URL
-	)
-	print "PantherBot:LOG:Message sent"
-
 #Update function for PantherBot so it clones latest master, replaces directories, and restarts. Currently not functional
 def updateBot(response):
 	print "PantherBot:LOG:Updating..."
@@ -286,12 +289,16 @@ def rebootBot(response):
 	elif p == "Linux":
 		subprocess.call('python bot.py', shell=True)
 
-def on_error(ws, error):
-	print "PantherBot:LOG:ERROR"
-	print error
-
-def on_close(ws):
-	print "PantherBot:LOG:Connection lost or closed..."
+#send a response message (sends to same channel as command was issued)
+def rMsg(response, t):
+	sc.api_call(
+		"chat.postMessage",
+		channel=response["channel"],
+		text=t,
+		username=BOT_NAME,
+		icon_url=BOT_ICON_URL
+	)
+	print "PantherBot:LOG:Message sent"
 
 #necessary shenanigans
 if __name__ == "__main__":
@@ -386,8 +393,16 @@ if __name__ == "__main__":
 	if SLACK == True:
 		while True:
 			try:
-				#Get Token from local system environment variables
-				t = os.environ['SLACK_API_TOKEN']
+				t = ""
+				#Get Token from secrets folder
+				try:
+					filename = "secrets/slack_secret.txt"
+					script_dir = os.path.dirname(__file__)
+					fullDir = os.path.join(script_dir, filename)
+					target = io.open(fullDir, "r")
+					t = target.readline().rstrip("\n")
+				except:
+					print "PantherBot:LOG:Cannot find Slack token"
 				#initiates the SlackClient connection
 				sc = SlackClient(t)
 
