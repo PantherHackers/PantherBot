@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/
+cd ..
 sudo rm -r PantherBot-old
 mv PantherBot PantherBot-old
 git clone https://github.com/braxton-mclean/PantherBot.git

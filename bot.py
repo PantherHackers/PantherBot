@@ -393,8 +393,16 @@ if __name__ == "__main__":
 	if SLACK == True:
 		while True:
 			try:
-				#Get Token from local system environment variables
-				t = os.environ['SLACK_API_TOKEN']
+				t = ""
+				#Get Token from secrets folder
+				try:
+					filename = "secrets/slack_secret.txt"
+					script_dir = os.path.dirname(__file__)
+					fullDir = os.path.join(script_dir, filename)
+					target = io.open(fullDir, "r")
+					t = target.readline().rstrip("\n")
+				except:
+					print "PantherBot:LOG:Cannot find Slack token"
 				#initiates the SlackClient connection
 				sc = SlackClient(t)
 
