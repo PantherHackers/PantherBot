@@ -85,13 +85,13 @@ def on_message(ws, message):
 
 		#Riyan's denial
 		#GIVES THE 'user' error we always see, its cause bots dont have the user field and its like hold up. This has been addressed by ignoring bot messages above.
-		if "U0LJJ7413" in response["user"]:
-			if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:
-				rMsg(response, "No.")
-				return
+		#if "U0LJJ7413" in response["user"]:
+		#	if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:
+		#		rMsg(response, "No.")
+		#		return
 
 		#Checks if message starts with an exclamation point, and does the respective task
-		elif response["text"][:1] == "!":
+		if response["text"][:1] == "!":
 			#put all ! command parameters into an array
 			args = response["text"].split()
 			#Command logic
