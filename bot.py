@@ -216,6 +216,27 @@ def rmsg(response, l):
 		)
 		print "PantherBot:LOG:Message sent"
 
+def channel_to_id(channel_names):
+	pub_channels = sc.api_call(
+		"channels.list",
+		exclude_archived=1
+	)
+	pri_channels = sc.api_call(
+		"groups.list",
+		exclude_archived=1
+	)
+	li = []
+	for channel in public_channel_id_list["channels"]:
+		for num in range(o, len(channel_names)):
+			if channel["name"].lower() == channel_names[num].lower():
+				li.append(channel["id"])
+	# Same as above
+	for channel in private_channel_id_list["groups"]:
+		for num in range(o, len(channel_names)):
+			if channel["name"].lower() == channel_names[num].lower():
+				li.append(channel["id"])
+	return li
+                         
 #necessary shenanigans
 if __name__ == "__main__":
 	print "PantherBot:LOG:Beginning Execution... Setting up"
