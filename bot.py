@@ -101,6 +101,14 @@ def on_message(ws, message):
 			if args[0].lower() == "!coin":
 				rMsg(response, Coin.coin())
 				return
+            
+	                #TODO: Make channel_to_id efficient
+			if args[0].lower() == "!talk":
+				if response["channel"] == channel_to_id("talk-to-pantherbot"):
+					rMsg(response, Talk.talk(args[1:]))
+					return
+				else:
+					rMsg(response, 'Go to #talk-to-pantherbot
 			if args[0].lower() == "!fortune":
 				rMsg(response, GiveFortune.giveFortune())
 				return
@@ -300,6 +308,28 @@ def rMsg(response, t):
 	)
 	print "PantherBot:LOG:Message sent"
 
+#TODO: change parameters to list
+def channel_to_id(channel_name):
+    public_channel_id_list = sc.api_call(
+        "channels.list",
+        exclude_archived=1
+    )
+    private_channel_id_list = sc.api_call(
+        "groups.list",
+        exclude_archived=1
+    )
+    for w in range(2, len(channel_name)):
+    # goes through the list of public channels, if found by name, its ID is added to the list of channels to go monitor
+        for c in public_channel_id_list["channels"]:
+            if c["name"].lower() == channel_name.lower():
+                return c["id"]
+        # Same as above
+        for p in private_channel_id_list["groups"]:
+            if p["name"].lower() == channel_name.lower():
+                return p["id"]
+                         
+    print("channel was not found")
+                         
 #necessary shenanigans
 if __name__ == "__main__":
 	print "PantherBot:LOG:Beginning Execution... Setting up"
