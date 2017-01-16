@@ -216,27 +216,26 @@ def rmsg(response, l):
 		)
 		print "PantherBot:LOG:Message sent"
 
-#TODO: change parameters to list
-def channel_to_id(channel_name):
-    public_channel_id_list = sc.api_call(
-        "channels.list",
-        exclude_archived=1
-    )
-    private_channel_id_list = sc.api_call(
-        "groups.list",
-        exclude_archived=1
-    )
-    for w in range(2, len(channel_name)):
-    # goes through the list of public channels, if found by name, its ID is added to the list of channels to go monitor
-        for c in public_channel_id_list["channels"]:
-            if c["name"].lower() == channel_name.lower():
-                return c["id"]
-        # Same as above
-        for p in private_channel_id_list["groups"]:
-            if p["name"].lower() == channel_name.lower():
-                return p["id"]
-                         
-    print("channel was not found")
+def channel_to_id(channel_names):
+	pub_channels = sc.api_call(
+		"channels.list",
+		exclude_archived=1
+	)
+	pri_channels = sc.api_call(
+		"groups.list",
+		exclude_archived=1
+	)
+	li = []
+	for channel in public_channel_id_list["channels"]:
+		for num in range(o, len(channel_names)):
+			if channel["name"].lower() == channel_names[num].lower():
+				li.append(channel["id"])
+	# Same as above
+	for channel in private_channel_id_list["groups"]:
+		for num in range(o, len(channel_names)):
+			if channel["name"].lower() == channel_names[num].lower():
+				li.append(channel["id"])
+	return li
                          
 #necessary shenanigans
 if __name__ == "__main__":
