@@ -8,8 +8,9 @@ from oauth2client.service_account import ServiceAccountCredentials
 from httplib2 import Http
 from apiclient.discovery import build
 #Other imports
-from scripts import Help, CatFacts, Flip, GiveFortune, Coin, Pugbomb, Unflip, Calendar, TaskMe
-import os, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging
+import scripts
+from scripts import commands
+import os, pdb, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging
 
 #Version Number: release.version_num.revision_num
 VERSION = "1.1.0"
@@ -22,15 +23,13 @@ GOOGLECAL = False #Set to False to disable connecting and enabling the Google Ca
 LOGGER = False #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
 GOOGLECALSECRET = "" #Can make this a system environment variable if you really want to be careful
 NEWUSERGREETING = False #Set to True to send users that join the Slack Team a message (GREETING), appended with a link (LINK) (used for whatever you want, in our case, a "How to Use Slack" document)
-GREETING = ""
-USER_LIST = []
-ADMIN = [] #["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands
-
-#Global Variables, don't change these, these are just to make our lives easier when using the $log command
-global LOG
+GREETING = "" #Set to a custom greeting loaded from config/settings.txt
+USER_LIST = [] #User list loaded at startup and on user join that contains list of team members.
+ADMIN = [] #testing defaults: ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands. loaded from config/admin.txt
+ADMIN_COMMANDS = ["log", "calendar", "admin"]
 LOG = False
-global LOGC
 LOGC = []
+#Global variabls
 #pugbomb variable declared
 global pbCooldown
 pbCooldown = 100
@@ -50,7 +49,23 @@ def on_message(ws, message):
 		if "subtype" in response:
 			if response["subtype"] == "bot_message":
 				return
-		global LOG, LOGC
+
+		#Check LOG and LOGC
+		LOG = False
+		LOGC = []
+		filename = "config/log.txt"
+		script_dir = os.path.dirname(__file__)
+		fullDir = os.path.join(script_dir, filename)
+		if os.path.isfile(fullDir) == False:
+			target = open(fullDir, "w+")
+			target.write(u'False')
+			target.close()
+		else:
+			target = open(fullDir, "r")
+		if target.readline().strip('\n') == "True":
+			LOG = True
+		LOGC = [line.rstrip('\n') for line in target]
+		target.close()
 
 		#If $log has been set to true it will save all spoken messages.
 		if LOG == True and response["channel"] in LOGC:
@@ -61,6 +76,7 @@ def on_message(ws, message):
 			#API call for user info that posted the message, personnally this should be removed
 			#its innefficient (and causes unnecessary API calls), we should make a locally stored list of users that have talked and reference that
 			#and if they arent found, call this function and append that list
+			#TODO Use USER_LIST instead
 			temp_user = sc.api_call(
 				"users.info",
 				user = response["user"]
@@ -84,95 +100,67 @@ def on_message(ws, message):
 			target.close()
 
 		#Riyan's denial
-		#GIVES THE 'user' error we always see, its cause bots dont have the user field and its like hold up. This has been addressed by ignoring bot messages above.
 		#if "U0LJJ7413" in response["user"]:
 		#	if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:
-		#		rMsg(response, "No.")
+		#		rmsg(response, "No.")
 		#		return
 
 		#Checks if message starts with an exclamation point, and does the respective task
 		if response["text"][:1] == "!":
 			#put all ! command parameters into an array
 			args = response["text"].split()
-			#Command logic
-			if args[0].lower() == "!catfact":
-				rMsg(response, CatFacts.catFacts())
+			com_text = args[0][1:].lower()
+			args.pop(0) #gets rid of the command
+			#checks if command is an Admin command
+			if com_text in ADMIN_COMMANDS:
+				rmsg(response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])
 				return
-			if args[0].lower() == "!coin":
-				rMsg(response, Coin.coin())
-				return
-            
-	                #TODO: Make channel_to_id efficient
-			if args[0].lower() == "!talk":
-				if response["channel"] == channel_to_id("talk-to-pantherbot"):
-					rMsg(response, Talk.talk(args[1:]))
+			#special case for pugbomb cooldown
+			if com_text == "pugbomb":
+				if pbCooldown < 100:
+					rmsg(response, ["Sorry, pugbomb is on cooldown"])
 					return
-				else:
-					rMsg(response, 'Go to #talk-to-pantherbot
-			if args[0].lower() == "!fortune":
-				rMsg(response, GiveFortune.giveFortune())
-				return
-			if args[0].lower() == "!pugbomb":
-				if pbCooldown > 99:
-					m = Pugbomb.pugbomb(response)
-					for s in m["pugs"]:
-						rMsg(response, s)
-					pbCooldown = 0
-				else:
-					rMsg(response, "Sorry, pugbomb is on cooldown")
-				return
-			if args[0].lower() == "!flip" or args[0].lower() == "!rage":
-				rMsg(response, Flip.flip(args))
-				return
-			if args[0].lower() == "!unflip":
-				rMsg(response, Unflip.unflip(args))
-				return
-			if args[0].lower() == "!taskme":
-				taskArr = TaskMe.taskme()
-				rMsg(response, "PantherBot challenges you to:\nIn the language of your choosing, " + taskArr[0])
-				rMsg(response, "Sample Output:\n" + taskArr[1])
-			if args[0].lower() == "!help":
-				rMsg(response, Help.help())
-				return
-			if args[0].lower() == "!calendar":
-				#Dont want to do an API call for something that isn't enabled
-				if GOOGLECAL == True:
-					#need to check allowed users but this can be set up properly later
-					if response["user"] == "U3EAHHF40":
-						rMsg(response, Calendar.determine(args, calendar))
-					else:
-						rMsg(response, "It seems you aren't authorized to add events to the calendar. If you believe this is a mistake, contact the person in charge of the Calendar, or the maintainer(s) of PantherBot")
-				else:
-					rMsg(response, "It seems Google Calendar is disabled, contact the PantherBot maintainer(s) if you believe this a mistake.")
-			if args[0].lower() == "!version":
-				rMsg(response, "Version number: " + VERSION)
+			#list that contains the response and args for all methods
+			l = []
+			l.append(response)
+			if len(args) > 0:
+				l.append(args)
+			#Attempts to find a command with the name matching the command given, and executes it
+			try:
+				f = getattr(commands[com_text], com_text)
+				rmsg(response, f(*l))
+			except:
+				#If it fails, outputs that no command was found or syntax was broken.
+				rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
 
-		#Checks for a log command
+		#Repeats above except for admin commands
 		elif response["text"][:1] == "$":
-			args = response["text"].split()
-			#Command logic
-			if args[0].lower() == "$log":
-				if response["user"] in ADMIN:
-					print "PantherBot:LOG:Approved User called $log"
-					log(response, args)
-					return
-				else:
-					rMsg(response, "It seems you aren't authorized to enable logging. If you believe this a mistake, contact the maintainer(s) of PantherBot")
-			if args[0].lower() == "$admin":
-				if response["user"] in ADMIN:
-					print "PantherBot:LOG:Approved User called $admin"
-					if args[1].lower() == "add":
-						adminAdd(response, args)
-					if args[1].lower() == "reboot":
-						rebootBot(response)
-					if args[1].lower() == "update":
-						updateBot(response)
-				else:
-					rMsg(response, "It seems you aren't authorized to use Admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot")
+			if response["user"] in ADMIN:
+				args = response["text"].split()
+				com_text = args[0][1:].lower()
+				args.pop(0)
+				#Special case for calendar requiring unique arguments
+				if com_text == "calendar":
+					if GOOGLECAL:
+						rmsg(response, scripts.calendar.calendar(args, calendar_obj))
+						return
+				l = []
+				l.append(response)
+				l.append(args)
+				l.append(sc)
+				l.append(rmsg)
+				try:
+					f = getattr(commands[com_text], com_text)
+					f(*l)
+				except:
+					rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
+			else:
+				rmsg(response, "It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot")
 
 		#If not an ! or $, checks if it should respond to another message format, like a greeting
 		elif response["text"].lower() == "hey pantherbot":
 			#returns user info that said hey
+			#TODO make this use USER_LIST
 			temp_user = sc.api_call(
 				"users.info",
 				user = response["user"]
@@ -180,16 +168,20 @@ def on_message(ws, message):
 			print "PantherBot:LOG:Greeting:We did it reddit"
 			try:
 				#attempts to send a message to Slack, this one is the only one that needs this try thing so far, no clue why
-				rMsg(response, "Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:")
+				rmsg(response, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
 			except:
 				print "PantherBot:LOG:Greeting:Error in response"
+
 		elif response["text"].lower() == "pantherbot ping":
-			rMsg(response, "PONG")
+			rmsg(response, ["PONG"])
+
 		elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":
-			rMsg(response, ":rip:")
+			rmsg(response, [":rip:"])
+
 		elif "subtype" in response:
 			if response["subtype"] == "channel_leave":
-				rMsg(response, "Press F to pay respects")
+				rmsg(response, ["Press F to pay respects"])
+
 	elif "team_join" == response["type"] and NEWUSERGREETING == True:
 		print "Member joined team"
 		print response
@@ -212,101 +204,17 @@ def on_error(ws, error):
 def on_close(ws):
 	print "PantherBot:LOG:Connection lost or closed..."
 
-#AND SO BEGINS ADMIN OR DEBUG COMMANDS
-#enables logging of messages on a channel/channels, storing the logs sorted by channel by day in the format "channelID Y-M-D"
-def log(response, words):
-	if "true" == words[1].lower():
-		global LOGC
-		global LOG
-		LOG = True
-		if len(words) > 2:
-			print "PantherBot:LOG:List of channels to log gathered"
-
-			#obtains list of public channels PB is in
-			c0 = sc.api_call(
-				"channels.list",
-				exclude_archived = 1
-			)
-			#obtains list of private channels PB is in
-			p0 = sc.api_call(
-				"groups.list",
-				exclude_archived = 1
-			)
-			#Goes through the arguments after true
-			print "PantherBot:LOG:Parsing list of channels to log"
-			for w in range(2, len(words)):
-				#goes through the list of public channels, if found by name, its ID is added to the list of channels to go monitor
-				for c in c0["channels"]:
-					if c["name"].lower() == words[w].lower():
-						LOGC.append(str(c["id"]))
-						rMsg(response, c["name"] + " added to list of channels to log")
-				#Same as above
-				for p in p0["groups"]:
-					if p["name"].lower() == words[w].lower():
-						LOGC.append(str(p["id"]))
-						rMsg(response, p["name"] + " added to the list of private channels to log")
-		else:
-			print "PantherBot:LOG:No Channels listed to log, logging channel $log was called in"
-			rMsg(response, "No channels listed to log, defaulting to this channel.")
-			LOGC.append(str(response["channel"]))
-		return
-	if "false" == words[1].lower():
-		print "PantherBot:LOG:Disabling logging"
-		global LOG
-		global LOGC
-		LOG = False
-		DUMMY = []
-		LOGC = DUMMY
-		rMsg(response, "Logging disabled.")
-		return
-
-#Command for adding members to the admin list based on username.
-def adminAdd(response, words):
-	print "PantherBot:LOG:admin add called"
-	filename = "config/admin.txt"
-	#this is the only reason this function is here
-	script_dir = os.path.dirname(__file__)
-	fullDir = os.path.join(script_dir, filename)
-
-	if os.path.isfile(fullDir) == True:
-		target = open(fullDir, "a")
-	else:
-		target = open(fullDir, "w+")
-	for user in USER_LIST["members"]:
-		for x in range(2, len(words)):
-			if user["name"] == words[x]:
-				ADMIN.append(user["id"])
-				#format:
-				#USERID\n
-				target.write(user["id"] + "\n")
-				rMsg(response, user["name"] + " has been added to the admin list.")
-	target.close()
-
-#Update function for PantherBot so it clones latest master, replaces directories, and restarts. Currently not functional
-def updateBot(response):
-	print "PantherBot:LOG:Updating..."
-	rMsg(response, "Updating...")
-	subprocess.call("./update.sh", shell=True)
-
-#does not conserve memory, the other process is left open.
-def rebootBot(response):
-	p = platform.system()
-	rMsg(response, "Rebooting...")
-	if p == "Windows":
-		subprocess.call('start.bat', shell=True)
-	elif p == "Linux":
-		subprocess.call('python bot.py', shell=True)
-
 #send a response message (sends to same channel as command was issued)
-def rMsg(response, t):
-	sc.api_call(
-		"chat.postMessage",
-		channel=response["channel"],
-		text=t,
-		username=BOT_NAME,
-		icon_url=BOT_ICON_URL
-	)
-	print "PantherBot:LOG:Message sent"
+def rmsg(response, l):
+	for text in l:
+		sc.api_call(
+			"chat.postMessage",
+			channel=response["channel"],
+			text=text,
+			username=BOT_NAME,
+			icon_url=BOT_ICON_URL
+		)
+		print "PantherBot:LOG:Message sent"
 
 #TODO: change parameters to list
 def channel_to_id(channel_name):
@@ -408,12 +316,12 @@ if __name__ == "__main__":
 
 		print "PantherBot:LOG:Searching for Google Credentials"
 		credentials = ServiceAccountCredentials.from_json_keyfile_name(
-		    secret_fullDir, scopes=scopes)
+			secret_fullDir, scopes=scopes)
 
 		print "PantherBot:LOG:Authenticating..."
 		google_http_auth = credentials.authorize(Http())
 
-		calendar = build('calendar', 'v3', http=google_http_auth)
+		calendar_obj = build('calendar', 'v3', http=google_http_auth)
 		print "PantherBot:LOG:Authentication Successful. Should consider enabling debug to view OAuth message. Starting PantherBot"
 		#print calendar.calendarList().list().execute()
 	else:
@@ -456,10 +364,10 @@ if __name__ == "__main__":
 										on_close = on_close)
 
 				ws.run_forever(ping_interval=30, ping_timeout=10)
-				time.sleep(60)
-				print "PantherBot:LOG:Attemptint to reconnect"
+				time.sleep(10)
+				print "PantherBot:LOG:Attempting to reconnect"
 			except:
 				print "PantherBot:LOG:Attempting to reconnect"
-				time.sleep(60)
+				time.sleep(10)
 	else:
 		print "PantherBot:LOG:Slack connection disabled... why?"

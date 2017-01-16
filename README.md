@@ -11,17 +11,19 @@ Current list of action commands:
 ```
 !help
 !coin
+!helloworld
 !fortune
 !catfact
-!pugbomb <number>
+!pugbomb <int>
 !taskme
-!flip/!rage flip/!unflip <String of any length containing only ascii characters>
-!calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location>
+!flip/!rage/!unflip <Optional:String>
 ```
 
 Current list of logging commands:
 ```
 $log <true/false> <optional: list of channels>
+$admin <reconnect/update>
+$calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location>
 ```
 
 To use these commands, in any channel that PantherBot is both present in and may post, start your message with one of the above commands and fill in the arguments as necessary
@@ -30,6 +32,7 @@ PantherBot also responds to a few custom messages as well, currently set to:
 ```
 Hey PantherBot
 PantherBot ping
+rip PantherBot
 ```
 As well as messaging them a custom message upon joining the Slack team.
 
@@ -42,7 +45,11 @@ Likewise, pip may request your permission or a prompt if using the `setup.bat` f
 PantherBot is currently relatively easy to set up in your Slack team. Follow the instructions below and it'll be up and running in no time!
 
 1. Go to your Slack team settings and set up a bot configuration, be sure to give it some information, including a username! Copy the API token.
-2. Set up a System Environment Variable called `SLACK_API_TOKEN`, and set its value to your API token you copied earlier (depends very much on the OS).
-3. Depending on your OS, run either `start.bat` for Windows, or run `start.sh` for linux.
+2. In the `secrets` folder, make a file called `slack_secret.txt`
+3. Depending on your OS, run either `start.bat` or `start.sh`
 4. The bot should become active in the slack team. Invite the bot into the channels you would like it to monitor (using the /invite @username command), and off it goes surveying the world!
-5. The bot is set up, if you want to edit anything (like the posting name or icon), edit the bot.py script's `BOT_NAME`, `BOT_ICON_URL`, `TUT_LINK`, `GREETING`, `GOOGLECAL`, `GOOGLECALSECRET`, `ADMIN`. We are looking to add a config file to consolidate this.
+5. If there are errors, consider re-running `setup.bat` or `setup.sh` in a higher privileged environment to be sure everything is installed properly
+5. The bot is set up, if you want to edit anything (like the posting name or icon), edit the config folder files to edit things such as:
+`BOT_NAME`, `BOT_ICON_URL` (bot.txt)
+`SLACK`, `GOOGLECAL`, `LOGGING`, `GOOGLECALSECRET`, `NEWUSERGREETING`, `GREETING` (settings.txt)  
+`ADMIN` (admin.txt)
