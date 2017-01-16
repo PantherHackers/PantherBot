@@ -128,7 +128,8 @@ def on_message(ws, message):
 				ch = channel_to_id([TTPB])
 				c = ch[0]
 				if response["channel"] != c:
-					rmsg(response, "Talk to me in #" + TTPB)
+					rmsg(response, ["Talk to me in #" + TTPB])
+					return
 			#list that contains the response and args for all methods
 			l = []
 			l.append(response)
