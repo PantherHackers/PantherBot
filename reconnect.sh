@@ -1,3 +1,3 @@
 #!/bin/bash
-pkill -f PantherBot/bot.py
+pkill -f bot.py
 ./start.sh

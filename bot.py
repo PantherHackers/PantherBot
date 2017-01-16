@@ -120,6 +120,9 @@ def on_message(ws, message):
 				if pbCooldown < 100:
 					rmsg(response, ["Sorry, pugbomb is on cooldown"])
 					return
+			if com_text == "version":
+				rmsg(response, [VERSION])
+				return
 			#list that contains the response and args for all methods
 			l = []
 			l.append(response)
@@ -236,7 +239,7 @@ def channel_to_id(channel_names):
 			if channel["name"].lower() == channel_names[num].lower():
 				li.append(channel["id"])
 	return li
-                         
+
 #necessary shenanigans
 if __name__ == "__main__":
 	print "PantherBot:LOG:Beginning Execution... Setting up"

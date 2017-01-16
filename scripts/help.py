@@ -8,6 +8,7 @@ def help(response):
 	text += "```!help\n"
 	text += "!coin\n"
 	text += "!helloworld\n"
+	text += "!version\n"
 	text += "!fortune\n"
 	text += "!flip <Optional:String>\n"
 	text += "!unflip <Optional:String>\n"
