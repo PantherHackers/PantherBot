@@ -204,22 +204,6 @@ def on_error(ws, error):
 def on_close(ws):
 	print "PantherBot:LOG:Connection lost or closed..."
 
-#AND SO BEGINS ADMIN OR DEBUG COMMANDS
-#Update function for PantherBot so it clones latest master, replaces directories, and restarts. Currently not functional
-def updateBot(response):
-	print "PantherBot:LOG:Updating..."
-	rmsg(response, ["Updating..."])
-	subprocess.call("./update.sh", shell=True)
-
-#does not conserve memory, the other process is left open.
-def rebootBot(response):
-	p = platform.system()
-	rmsg(response, ["Rebooting..."])
-	if p == "Windows":
-		subprocess.call('start.bat', shell=True)
-	elif p == "Linux":
-		subprocess.call('python bot.py', shell=True)
-
 #send a response message (sends to same channel as command was issued)
 def rmsg(response, l):
 	for text in l:
@@ -310,7 +294,7 @@ if __name__ == "__main__":
 
 		print "PantherBot:LOG:Searching for Google Credentials"
 		credentials = ServiceAccountCredentials.from_json_keyfile_name(
-		    secret_fullDir, scopes=scopes)
+			secret_fullDir, scopes=scopes)
 
 		print "PantherBot:LOG:Authenticating..."
 		google_http_auth = credentials.authorize(Http())
