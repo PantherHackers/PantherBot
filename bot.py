@@ -125,7 +125,8 @@ def on_message(ws, message):
 				rmsg(response, [VERSION])
 				return
 			if com_text == "talk":
-				if response["channel"] != channel_to_id(TTPB):
+				ch = channel_to_id([TTPB])[0]
+				if response["channel"] != ch:
 					return
 			#list that contains the response and args for all methods
 			l = []
@@ -298,9 +299,9 @@ if __name__ == "__main__":
 	if target.readline().rstrip('\n') == "True":
 		LOGGER = True
 	GOOGLECALSECRET = target.readline().rstrip('\n')
-	NEWUSERGREETING = target.readline().rstrip('\n')
 	if target.readline().rstrip('\n') == "True":
 		GREETING = True
+	NEWUSERGREETING = target.readline().rstrip('\n')
 	TTPB = target.readline().rstrip('\n')
 	target.close()
 
