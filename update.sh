@@ -8,4 +8,5 @@ mv PantherBot-old/config PantherBot/config
 mv PantherBot-old/secrets PantherBot/secrets
 mv PantherBot-old/logs PantherBot/logs
 cd PantherBot
+./setup.sh
 ./start.sh

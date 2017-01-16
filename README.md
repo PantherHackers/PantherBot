@@ -49,7 +49,7 @@ PantherBot is currently relatively easy to set up in your Slack team. Follow the
 3. Depending on your OS, run either `start.bat` or `start.sh`
 4. The bot should become active in the slack team. Invite the bot into the channels you would like it to monitor (using the /invite @username command), and off it goes surveying the world!
 5. If there are errors, consider re-running `setup.bat` or `setup.sh` in a higher privileged environment to be sure everything is installed properly
-5. The bot is set up, if you want to edit anything (like the posting name or icon), edit the config folder files to edit things such as:
+6. The bot is set up, if you want to edit anything (like the posting name or icon), edit the config folder files to edit things such as:
 `BOT_NAME`, `BOT_ICON_URL` (bot.txt)
 `SLACK`, `GOOGLECAL`, `LOGGING`, `GOOGLECALSECRET`, `NEWUSERGREETING`, `GREETING` (settings.txt)  
 `ADMIN` (admin.txt)
