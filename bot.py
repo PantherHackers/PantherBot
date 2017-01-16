@@ -27,6 +27,7 @@ GREETING = "" #Set to a custom greeting loaded from config/settings.txt
 USER_LIST = [] #User list loaded at startup and on user join that contains list of team members.
 ADMIN = [] #testing defaults: ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands. loaded from config/admin.txt
 ADMIN_COMMANDS = ["log", "calendar", "admin"]
+TTPB = ""
 LOG = False
 LOGC = []
 #Global variabls
@@ -115,7 +116,7 @@ def on_message(ws, message):
 			if com_text in ADMIN_COMMANDS:
 				rmsg(response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])
 				return
-			#special case for pugbomb cooldown
+			#special case for some functions cooldown
 			if com_text == "pugbomb":
 				if pbCooldown < 100:
 					rmsg(response, ["Sorry, pugbomb is on cooldown"])
@@ -123,6 +124,9 @@ def on_message(ws, message):
 			if com_text == "version":
 				rmsg(response, [VERSION])
 				return
+			if com_text == "talk":
+				if response["channel"] != channel_to_id(TTPB):
+					return
 			#list that contains the response and args for all methods
 			l = []
 			l.append(response)
@@ -283,7 +287,8 @@ if __name__ == "__main__":
 		target.write('False\n')
 		target.write('google-secret.json\n')
 		target.write('True\n')
-		target.write('Welcome to the team! You can get more help with Slack here: https://get.slack.help/')
+		target.write('Welcome to the team! You can get more help with Slack here: https://get.slack.help/\n')
+		target.write('talk-to-pantherbot')
 		target.close()
 	target = io.open(fullDir, "r")
 	if target.readline().rstrip('\n') == "True":
@@ -296,6 +301,7 @@ if __name__ == "__main__":
 	NEWUSERGREETING = target.readline().rstrip('\n')
 	if target.readline().rstrip('\n') == "True":
 		GREETING = True
+	TTPB = target.readline().rstrip('\n')
 	target.close()
 
 	#initialize basic logging to see errors more easily
