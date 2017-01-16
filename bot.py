@@ -125,9 +125,10 @@ def on_message(ws, message):
 				rmsg(response, [VERSION])
 				return
 			if com_text == "talk":
-				ch = channel_to_id([TTPB])[0]
-				if response["channel"] != ch:
-					return
+				ch = channel_to_id([TTPB])
+				c = ch[0]
+				if response["channel"] != c:
+					rmsg(response, "Talk to me in #" + TTPB)
 			#list that contains the response and args for all methods
 			l = []
 			l.append(response)
@@ -234,13 +235,13 @@ def channel_to_id(channel_names):
 		exclude_archived=1
 	)
 	li = []
-	for channel in public_channel_id_list["channels"]:
-		for num in range(o, len(channel_names)):
+	for channel in pub_channels["channels"]:
+		for num in range(0, len(channel_names)):
 			if channel["name"].lower() == channel_names[num].lower():
 				li.append(channel["id"])
 	# Same as above
-	for channel in private_channel_id_list["groups"]:
-		for num in range(o, len(channel_names)):
+	for channel in pri_channels["groups"]:
+		for num in range(0, len(channel_names)):
 			if channel["name"].lower() == channel_names[num].lower():
 				li.append(channel["id"])
 	return li
