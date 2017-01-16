@@ -3,5 +3,5 @@
 
 from cleverbot import Cleverbot
 
-def talk(talk):
-    return Cleverbot().ask(" ".join(talk))
+def talk(response, args):
+    return Cleverbot().ask(" ".join(args))
