@@ -2,20 +2,26 @@
 # -*- coding: utf-8 -*-
 
 #help script that details the list of commands
-def help():
+def help(response):
+	print "ey"
 	text = "PantherBot works by prefacing commands with \"!\"\n"
 	text += "Commands:\n"
 	text += "```!help\n"
 	text += "!coin\n"
 	text += "!fortune\n"
 	text += "!flip <String>\n"
-	text += "!rage flip <String>\n"
 	text += "!unflip <String>\n"
-	text += "!rage flip <String>\n"
+	text += "!rage <String>\n"
 	text += "!catfact\n"
 	text += "!pugbomb <int>\n"
 	text += "!taskme\n"
-	text += "!calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location>\n"
 	text += "\"Hey PantherBot\"```\n"
 	text += "Try saying `Hey PantherBot` or `!coin`"
-	return text
+	print "howdy"
+
+	motext = "Admins are able to use admin commands prefaced with \"$\"\n"
+	motext += "```$calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location>\n"
+	motext += "$admin <reconnect/update>\n"
+	motext += "$log <true/false> <channels>```"
+	print "boi"
+	return [text, motext]
