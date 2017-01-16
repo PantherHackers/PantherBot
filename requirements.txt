@@ -4,3 +4,4 @@ upsidedown
 httplib2
 logging
 websocket-client
+cleverbot
