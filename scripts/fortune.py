@@ -3,7 +3,7 @@
 import urllib2
 
 #returns a random "fortune"
-def giveFortune():
+def fortune(response):
 	try:
 		#get fortune
 		fortune = urllib2.urlopen("http://www.fortunefortoday.com/getfortuneonly.php").read()
@@ -12,4 +12,4 @@ def giveFortune():
 		print "PantherBot:Log:Fortune:Error in receiving fortune"
 
 	#make api call
-	return fortune
+	return [fortune]
