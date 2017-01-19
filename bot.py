@@ -10,10 +10,10 @@ from apiclient.discovery import build
 #Other imports
 import scripts
 from scripts import commands
-import os, pdb, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging
+import os, pdb, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging, random
 
 #Version Number: release.version_num.revision_num
-VERSION = "1.1.0"
+VERSION = "1.1.5"
 
 #Config Variables
 BOT_NAME = "" #Set to whatever you would like the Bot to post his name as in Slack
@@ -24,10 +24,12 @@ LOGGER = False #Set to True to get "detailed" error messages in the console. The
 GOOGLECALSECRET = "" #Can make this a system environment variable if you really want to be careful
 NEWUSERGREETING = False #Set to True to send users that join the Slack Team a message (GREETING), appended with a link (LINK) (used for whatever you want, in our case, a "How to Use Slack" document)
 GREETING = "" #Set to a custom greeting loaded from config/settings.txt
+EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
 USER_LIST = [] #User list loaded at startup and on user join that contains list of team members.
 ADMIN = [] #testing defaults: ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands. loaded from config/admin.txt
 ADMIN_COMMANDS = ["log", "calendar", "admin"]
 TTPB = ""
+GENERAL = ""
 LOG = False
 LOGC = []
 #Global variabls
@@ -100,6 +102,15 @@ def on_message(ws, message):
 			target.write(response["ts"] + "]\n\n")
 			target.close()
 
+		#Announcement reactions
+		if GENERAL != "" and response["channel"] == GENERAL:
+			temp_list = list(EMOJI_LIST)
+			print temp_list
+			rreaction(response, "pantherbot")
+			for x in  range(0, 3):
+				num = random.randrange(0,len(temp_list))
+				rreaction(response, temp_list.pop(num))
+
 		#Riyan's denial
 		#if "U0LJJ7413" in response["user"]:
 		#	if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:
@@ -116,17 +127,26 @@ def on_message(ws, message):
 			if com_text in ADMIN_COMMANDS:
 				rmsg(response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])
 				return
-			#special case for some functions cooldown
+
+
+			#special cases for some functions
 			if com_text == "pugbomb":
 				if pbCooldown < 100:
 					rmsg(response, ["Sorry, pugbomb is on cooldown"])
 					return
+				else:
+					pbCooldown = 0
 			if com_text == "version":
 				rmsg(response, [VERSION])
 				return
 			if com_text == "talk":
-				if response["channel"] != channel_to_id(TTPB):
+				ch = channel_to_id([TTPB])
+				c = ch[0]
+				if response["channel"] != c:
+					rmsg(response, ["Talk to me in #" + TTPB])
 					return
+
+
 			#list that contains the response and args for all methods
 			l = []
 			l.append(response)
@@ -184,7 +204,8 @@ def on_message(ws, message):
 
 		elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":
 			rmsg(response, [":rip:"])
-
+		elif "panther hackers" in str(response["text"].lower()):
+			rmsg(response, ["NO THIS IS PANTHERHACKERS"])
 		elif "subtype" in response:
 			if response["subtype"] == "channel_leave":
 				rmsg(response, ["Press F to pay respects"])
@@ -223,6 +244,15 @@ def rmsg(response, l):
 		)
 		print "PantherBot:LOG:Message sent"
 
+def rreaction(response, emoji):
+	sc.api_call(
+		"reactions.add",
+		name=emoji,
+		channel=response["channel"],
+		timestamp=response["ts"]
+	)
+	print "PantherBot:LOG:Reaction posted"
+
 def channel_to_id(channel_names):
 	pub_channels = sc.api_call(
 		"channels.list",
@@ -233,13 +263,13 @@ def channel_to_id(channel_names):
 		exclude_archived=1
 	)
 	li = []
-	for channel in public_channel_id_list["channels"]:
-		for num in range(o, len(channel_names)):
+	for channel in pub_channels["channels"]:
+		for num in range(0, len(channel_names)):
 			if channel["name"].lower() == channel_names[num].lower():
 				li.append(channel["id"])
 	# Same as above
-	for channel in private_channel_id_list["groups"]:
-		for num in range(o, len(channel_names)):
+	for channel in pri_channels["groups"]:
+		for num in range(0, len(channel_names)):
 			if channel["name"].lower() == channel_names[num].lower():
 				li.append(channel["id"])
 	return li
@@ -298,9 +328,9 @@ if __name__ == "__main__":
 	if target.readline().rstrip('\n') == "True":
 		LOGGER = True
 	GOOGLECALSECRET = target.readline().rstrip('\n')
-	NEWUSERGREETING = target.readline().rstrip('\n')
 	if target.readline().rstrip('\n') == "True":
 		GREETING = True
+	NEWUSERGREETING = target.readline().rstrip('\n')
 	TTPB = target.readline().rstrip('\n')
 	target.close()
 
@@ -363,6 +393,15 @@ if __name__ == "__main__":
 				USER_LIST = sc.api_call(
 					"users.list"
 				)
+
+				#Update current General Channel (usually announcements)
+				li = channel_to_id(["announcements"])
+				if not li:
+					li = channel_to_id(["general"])
+				try:
+					GENERAL = li[0]
+				except:
+					pass
 
 				#creates WebSocketApp based on the wss returned by the RTM API
 				print "PantherBot:LOG:Starting WebSocketApplication and connection"

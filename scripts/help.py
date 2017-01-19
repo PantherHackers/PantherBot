@@ -23,5 +23,6 @@ def help(response):
 	motext = "Admins are able to use admin commands prefaced with \"$\"\n"
 	motext += "```$calendar add ; <Title> ; <Date in format YYYY-MM-DD> ; <Start time in format HH:mm> ; <End time in format HH:mm> ; <Description> ; <Location>\n"
 	motext += "$admin <reconnect/update>\n"
-	motext += "$log <true/false> <channels>```"
+	motext += "$log <true/false> <channels>```\n"
+	motext += "Got suggestions for PantherBot? Fill out our typeform to leave your ideas! https://goo.gl/rEb0B7"
 	return [text, motext]

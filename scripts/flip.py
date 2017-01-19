@@ -5,7 +5,7 @@ import upsidedown
 #flips text using upsidedown module and has a donger for emohasis
 def flip(response, args=[]):
 	toFlip = ''
-	donger = '(╯°□°）╯︵'
+	donger = '(╯°□°)╯︵'
 	if len(args) >= 0:
 		for n in range(0, len(args)):
 			toFlip += args[n] + " "
