@@ -9,4 +9,4 @@ def talk(response, args=[]):
 	for s in args:
 		r = r + s + " "
 	r = r.encode(encoding='utf-8')
-	return [Cleverbot().ask(r)]
+	return [Cleverbot('PantherBot').ask(r)]
