@@ -10,10 +10,10 @@ from apiclient.discovery import build
 #Other imports
 import scripts
 from scripts import commands
-import os, pdb, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging, random
+import os, pdb, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging, random, logtofile
 
 #Version Number: release.version_num.revision_num
-VERSION = "1.1.5"
+VERSION = "1.1.6"
 
 #Config Variables
 BOT_NAME = "" #Set to whatever you would like the Bot to post his name as in Slack
@@ -72,35 +72,7 @@ def on_message(ws, message):
 
 		#If $log has been set to true it will save all spoken messages.
 		if LOG == True and response["channel"] in LOGC:
-			#sets file location to the logs folder and based on the day's date
-			#this way if $log is enabled and the day rolls over, it will shift over to the new file without hiccup
-			filename = "logs/" + response["channel"] + " " + str(datetime.date.today()) + ".txt"
-
-			#API call for user info that posted the message, personnally this should be removed
-			#its innefficient (and causes unnecessary API calls), we should make a locally stored list of users that have talked and reference that
-			#and if they arent found, call this function and append that list
-			#TODO Use USER_LIST instead
-			temp_user = sc.api_call(
-				"users.info",
-				user = response["user"]
-			)
-
-			script_dir = os.path.dirname(__file__)
-			fullDir = os.path.join(script_dir, filename)
-			#If the file isnt present already it makes a new one with the right name.
-			if os.path.isfile(fullDir) == True:
-				target = io.open(fullDir, "a", encoding='utf-8')
-			else:
-				target = io.open(fullDir, "w+",encoding='utf-8')
-			user_name = temp_user["user"]["profile"]["first_name"] + " " + temp_user["user"]["profile"]["last_name"]
-
-			#format:
-			#F_NAME L_NAME
-			#[MESSAGE] [TIMESTAMP]
-			target.write(user_name+ "\n")
-			target.write(response["text"] + " [")
-			target.write(response["ts"] + "]\n\n")
-			target.close()
+			logtofile.log(sc, response)
 
 		#Announcement reactions
 		if GENERAL != "" and response["channel"] == GENERAL:
@@ -127,8 +99,6 @@ def on_message(ws, message):
 			if com_text in ADMIN_COMMANDS:
 				rmsg(response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])
 				return
-
-
 			#special cases for some functions
 			if com_text == "pugbomb":
 				if pbCooldown < 100:
@@ -284,6 +254,8 @@ if __name__ == "__main__":
 	if sys.stderr.encoding != 'utf-8':
 		sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
 
+	#Used to load config files and stuff.
+	#not implemented yet
 	#load config files
 	print "PantherBot:LOG:Loading config files"
 	filename = "config/admin.txt"
@@ -402,6 +374,9 @@ if __name__ == "__main__":
 					GENERAL = li[0]
 				except:
 					pass
+
+				#Initiates CleverBot item that will be passed to !talk function
+				#cb = Cleverbot('PantherBot')
 
 				#creates WebSocketApp based on the wss returned by the RTM API
 				print "PantherBot:LOG:Starting WebSocketApplication and connection"

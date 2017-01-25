@@ -28,7 +28,7 @@ def log(response, args, sc, rmsg):
 			pri_channels = sc.api_call("groups.list",exclude_archived = 1)
 			#Goes through the arguments after true
 			print "PantherBot:LOG:Parsing list of channels to log"
-			for w in range(1, len(args)):
+			for w in range(1 , len(args)):
 				#goes through the list of public channels, if found by name, its ID is added to the list of channels to go monitor
 				for channel in pub_channels["channels"]:
 					if channel["name"].lower() == args[w].lower():
