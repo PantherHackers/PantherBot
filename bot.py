@@ -115,7 +115,8 @@ def on_message(ws, message):
 				if response["channel"] != c:
 					rmsg(response, ["Talk to me in #" + TTPB])
 					return
-
+			if com_text[0] == '!':
+				return
 
 			#list that contains the response and args for all methods
 			l = []
@@ -351,8 +352,9 @@ if __name__ == "__main__":
 					t = target.readline().rstrip("\n")
 				except:
 					print "PantherBot:LOG:Cannot find Slack token"
-				#initiates the SlackClient connection
+				#initiates the SlackClient connection and Cleverbot API
 				sc = SlackClient(t)
+
 
 				#initiates connection to the server based on the token
 				print "PantherBot:LOG:Starting RTM connection"
