@@ -197,19 +197,19 @@ def on_message(ws, message):
 		)
 
 	#Logs activity for analytics
-	if response["type"] == "message"
-		if rdb.hexists(response["user"])
+	if response["type"] == "message":
+		if rdb.hexists(response["user"]):
 			rdb.hincrby(response["user"], 'commentScore')
-		else
+		else:
 			create_member(response["user"], 1, response["channel"], 1, 0, 0)
-	elif response["type"] == "reaction_added"
-		if rdb.exists(response["user"])
+	elif response["type"] == "reaction_added":
+		if rdb.exists(response["user"]):
 			rdb.hincrby(response["user"], 'emojiGenerousityScore')
 			rdb.hincrby(response["item_user"], 'emojiScore')
-		else
+		else:
 			create_member(response["user"], 0, response["channel"], 0, 0, 1)
-	elif response["type"] == "reaction_removed"
-		if rdb.exists(response["user"])
+	elif response["type"] == "reaction_removed":
+		if rdb.exists(response["user"]):
 			rdb.hincrby(response["user"], 'emojiGenerousityScore', -1)
 			rdb.hincrby(response["item_user"], 'emojiScore', -1)
 
