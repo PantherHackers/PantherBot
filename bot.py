@@ -10,7 +10,7 @@ from apiclient.discovery import build
 #Other imports
 import scripts
 from scripts import commands
-import os, pdb, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging, random, logtofile
+import os, pdb, io, sys, time, platform, subprocess, codecs, websocket, datetime, json, logging, random, logtofile, redis
 
 #Version Number: release.version_num.revision_num
 VERSION = "1.1.6"
