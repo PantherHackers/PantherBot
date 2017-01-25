@@ -36,6 +36,7 @@ LOGC = []
 #pugbomb variable declared
 global pbCooldown
 pbCooldown = 100
+rdb = redis.Redis(host='localhost', port=6379, db=0)
 
 #function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything
 def on_message(ws, message):
@@ -194,6 +195,24 @@ def on_message(ws, message):
 		USER_LIST = sc.api_call(
 			"users.list",
 		)
+
+	#Logs activity for analytics
+	if response["type"] == "message"
+		if r.exists(response[user])
+			
+
+		else
+			#If this is the first time they're messaging, create a field for them
+			r.set(
+				response[user], 
+					{'name':'NA', 
+					'commentScore':'1', 
+					'channelScore': 
+						{response['channel']: '1'},
+					'emojiScore':'0', 
+					'emojiGenerousityScore':'0'
+				}
+			)
 
 #Less used WebSocket functions
 def on_error(ws, error):
