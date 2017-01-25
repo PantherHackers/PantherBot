@@ -1,5 +1,5 @@
 #!/bin/bash
-pip install -r requirements.txt
+pip install -r --upgrade requirements.txt
 mkdir logs
 mkdir secrets
 mkdir config

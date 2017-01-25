@@ -23,4 +23,4 @@ def reconnectBot(response, rmsg):
 	if p == "Windows":
 		proc = subprocess.Popen("reconnect.bat", cwd=script_dir, shell=True)
 	elif p == "Linux":
-		proc = subprocess.Popen("sh reconnect.sh", cwd=script_dir, shell=True)
+		proc = subprocess.Popen("./reconnect.sh", cwd=script_dir, shell=True)
