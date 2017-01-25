@@ -44,6 +44,23 @@ def on_message(ws, message):
 	response = json.loads(s)
 	print "PantherBot:LOG:message:" + response["type"]
 
+
+	#Logs activity for analytics
+	# if response["type"] == "message":
+	# 	if rdb.hexists(response["user"]):
+	# 		rdb.hincrby(response["user"], 'commentScore')
+	# 	else:
+	# 		create_member(response["user"], 1, response["channel"], 1, 0, 0)
+	if response["type"] == "reaction_added":
+		if rdb.exists(response["user"]):
+			rdb.hincrby(response["user"], 'emojiGenerousityScore')
+			rdb.hincrby(response["item_user"], 'emojiScore')
+		else:
+			create_member(response["user"], 0, response["channel"], 0, 0, 1)
+	if response["type"] == "reaction_removed":
+		if rdb.exists(response["user"]):
+			rdb.hincrby(response["user"], 'emojiGenerousityScore', -1)
+			rdb.hincrby(response["item_user"], 'emojiScore', -1)
 	#Pugbomb cooldown incrementation
 	global pbCooldown
 	pbCooldown += 1
@@ -195,23 +212,6 @@ def on_message(ws, message):
 		USER_LIST = sc.api_call(
 			"users.list",
 		)
-
-	#Logs activity for analytics
-	if response["type"] == "message":
-		if rdb.hexists(response["user"]):
-			rdb.hincrby(response["user"], 'commentScore')
-		else:
-			create_member(response["user"], 1, response["channel"], 1, 0, 0)
-	elif response["type"] == "reaction_added":
-		if rdb.exists(response["user"]):
-			rdb.hincrby(response["user"], 'emojiGenerousityScore')
-			rdb.hincrby(response["item_user"], 'emojiScore')
-		else:
-			create_member(response["user"], 0, response["channel"], 0, 0, 1)
-	elif response["type"] == "reaction_removed":
-		if rdb.exists(response["user"]):
-			rdb.hincrby(response["user"], 'emojiGenerousityScore', -1)
-			rdb.hincrby(response["item_user"], 'emojiScore', -1)
 
 
 
