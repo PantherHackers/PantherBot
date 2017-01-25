@@ -198,21 +198,30 @@ def on_message(ws, message):
 
 	#Logs activity for analytics
 	if response["type"] == "message"
-		if r.exists(response[user])
-			
-
+		if rdb.hexists(response["user"])
+			rdb.hincrby(response["user"], 'commentScore')
 		else
-			#If this is the first time they're messaging, create a field for them
-			r.set(
-				response[user], 
-					{'name':'NA', 
-					'commentScore':'1', 
-					'channelScore': 
-						{response['channel']: '1'},
-					'emojiScore':'0', 
-					'emojiGenerousityScore':'0'
-				}
-			)
+			create_member(response["user"], 1, response["channel"], 1, 0, 0)
+	elif response["type"] == "reaction_added"
+		if rdb.exists(response["user"])
+			rdb.hincrby(response["user"], 'emojiGenerousityScore')
+			rdb.hincrby(response["item_user"], 'emojiScore')
+		else
+			create_member(response["user"], 0, response["channel"], 0, 0, 1)
+	elif response["type"] == "reaction_removed"
+		if rdb.exists(response["user"])
+			rdb.hincrby(response["user"], 'emojiGenerousityScore', -1)
+			rdb.hincrby(response["item_user"], 'emojiScore', -1)
+
+
+
+#If this is the first time a user is seen, create a field for them
+def create_member(user,commentScore, channel, channelScore, emojiScore, emojiGenerousityScore):
+	rdb.hset(user, 'name', '')
+	rdb.hset(user, 'commentScore', commentScore)
+	rdb.hset(user, 'channelScore', {channel: channelScore})
+	rdb.hset(user, 'emojiScore', emojiScore)
+	rdb.hset(user, 'emojiGenerousityScore', emojiGenerousityScore)
 
 #Less used WebSocket functions
 def on_error(ws, error):
