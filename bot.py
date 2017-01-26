@@ -16,16 +16,16 @@ import os, pdb, io, sys, time, platform, subprocess, codecs, websocket, datetime
 VERSION = "1.1.6"
 
 #Config Variables
-BOT_NAME = "" #Set to whatever you would like the Bot to post his name as in Slack
-BOT_ICON_URL = "" #Set to change whatever the profile picture is when the Bot posts a message
-SLACK = False #Set to False to disable connecting to the Slack RTM API... for whatever reason
-GOOGLECAL = False #Set to False to disable connecting and enabling the Google Calendar API integration
-LOGGER = False #Set to True to get "detailed" error messages in the console. These error messages can vary from very helpful to utterly useless
-GOOGLECALSECRET = "" #Can make this a system environment variable if you really want to be careful
-NEWUSERGREETING = False #Set to True to send users that join the Slack Team a message (GREETING), appended with a link (LINK) (used for whatever you want, in our case, a "How to Use Slack" document)
-GREETING = "" #Set to a custom greeting loaded from config/settings.txt
+BOT_NAME = ""
+BOT_ICON_URL = ""
+SLACK = False
+GOOGLECAL = False
+LOGGER = False
+GOOGLECALSECRET = ""
+NEWUSERGREETING = False
+GREETING = ""
 EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
-USER_LIST = [] #User list loaded at startup and on user join that contains list of team members.
+USER_LIST = []
 ADMIN = [] #testing defaults: ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] Contains user IDs for those allowed to run $ commands. loaded from config/admin.txt
 ADMIN_COMMANDS = ["log", "calendar", "admin"]
 TTPB = ""
@@ -33,7 +33,6 @@ GENERAL = ""
 LOG = False
 LOGC = []
 #Global variabls
-#pugbomb variable declared
 global pbCooldown
 pbCooldown = 100
 
@@ -54,21 +53,7 @@ def on_message(ws, message):
 				return
 
 		#Check LOG and LOGC
-		LOG = False
-		LOGC = []
-		filename = "config/log.txt"
-		script_dir = os.path.dirname(__file__)
-		fullDir = os.path.join(script_dir, filename)
-		if os.path.isfile(fullDir) == False:
-			target = open(fullDir, "w+")
-			target.write(u'False')
-			target.close()
-		else:
-			target = open(fullDir, "r")
-		if target.readline().strip('\n') == "True":
-			LOG = True
-		LOGC = [line.rstrip('\n') for line in target]
-		target.close()
+		checkLog(LOG, LOGC)
 
 		#If $log has been set to true it will save all spoken messages.
 		if LOG == True and response["channel"] in LOGC:
@@ -244,6 +229,23 @@ def channel_to_id(channel_names):
 			if channel["name"].lower() == channel_names[num].lower():
 				li.append(channel["id"])
 	return li
+
+def checkLog(LOG, LOGC):
+	LOG = False
+	LOGC = []
+	filename = "config/log.txt"
+	script_dir = os.path.dirname(__file__)
+	fullDir = os.path.join(script_dir, filename)
+	if os.path.isfile(fullDir) == False:
+		target = open(fullDir, "w+")
+		target.write(u'False')
+		target.close()
+	else:
+		target = open(fullDir, "r")
+	if target.readline().strip('\n') == "True":
+		LOG = True
+	LOGC = [line.rstrip('\n') for line in target]
+	target.close()
 
 #necessary shenanigans
 if __name__ == "__main__":
