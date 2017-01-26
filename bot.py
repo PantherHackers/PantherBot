@@ -30,15 +30,18 @@ ADMIN = []  # testing defaults: ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF
 ADMIN_COMMANDS = ["log", "calendar", "admin"]
 TTPB = ""
 GENERAL = ""
-LOG = False
-LOGC = []
+
 # Global variabls
+global LOG
+LOG = False
+global LOGC
+LOGC = []
 global pbCooldown
 pbCooldown = 100
 
 
 # function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything  # noqa: 501
-def on_message(ws, message):  # noqa: 103
+def on_message(ws, message):
     s = message
     response = json.loads(s)
     print "PantherBot:LOG:message:" + response["type"]
@@ -46,126 +49,35 @@ def on_message(ws, message):  # noqa: 103
     # Pugbomb cooldown incrementation
     global pbCooldown
     pbCooldown += 1
+    global LOG
+    global LOGC
 
     # Checks if the event type returned by Slack is a message
     if "message" == response["type"]:
         if "subtype" in response:
             if response["subtype"] == "bot_message":
                 return
-
-        # Check LOG and LOGC
-        checkLog(LOG, LOGC)
-
-        # If $log has been set to true it will save all spoken messages.
+        # Checks LOG and LOGC values, then
+        # If LOG has been set to true it will save all spoken messages.
+        checkLog()
         if LOG and response["channel"] in LOGC:
             logtofile.log(sc, response)
 
         # Announcement reactions
         if GENERAL != "" and response["channel"] == GENERAL:
             temp_list = list(EMOJI_LIST)
-            print temp_list
             rreaction(response, "pantherbot")
             for x in range(0, 3):
                 num = random.randrange(0, len(temp_list))
                 rreaction(response, temp_list.pop(num))
-
-        # Riyan's denial
-        # if "U0LJJ7413" in response["user"]:
-        #     if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:  # noqa: 501
-        #         rmsg(response, "No.")
-        #         return
-
-        # Checks if message starts with an exclamation point, and does the respective task  # noqa: 501
-        if response["text"][:1] == "!":
-            # put all ! command parameters into an array
-            args = response["text"].split()
-            com_text = args[0][1:].lower()
-            args.pop(0)  # gets rid of the command
-            # checks if command is an Admin command
-            if com_text in ADMIN_COMMANDS:
-                rmsg(response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])  # noqa: 501
-                return
-            # special cases for some functions
-            if com_text == "pugbomb":
-                if pbCooldown < 100:
-                    rmsg(response, ["Sorry, pugbomb is on cooldown"])
-                    return
-                else:
-                    pbCooldown = 0
-            if com_text == "version":
-                rmsg(response, [VERSION])
-                return
-            if com_text == "talk":
-                ch = channel_to_id([TTPB])
-                c = ch[0]
-                if response["channel"] != c:
-                    rmsg(response, ["Talk to me in #" + TTPB])
-                    return
-            if com_text[0] == '!':
-                return
-
-            # list that contains the response and args for all methods
-            l = []
-            l.append(response)
-            if len(args) > 0:
-                l.append(args)
-            # Attempts to find a command with the name matching the command given, and executes it  # noqa: 501
-            try:
-                f = getattr(commands[com_text], com_text)
-                rmsg(response, f(*l))
-            except:
-                # If it fails, outputs that no command was found or syntax was broken.  # noqa: 501
-                rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
-
-        # Repeats above except for admin commands
-        elif response["text"][:1] == "$":
-            if response["user"] in ADMIN:
-                args = response["text"].split()
-                com_text = args[0][1:].lower()
-                args.pop(0)
-                # Special case for calendar requiring unique arguments
-                if com_text == "calendar":
-                    if GOOGLECAL:
-                        rmsg(response, scripts.calendar.calendar(args, calendar_obj))  # noqa: 501
-                        return
-                l = []
-                l.append(response)
-                l.append(args)
-                l.append(sc)
-                l.append(rmsg)
-                try:
-                    f = getattr(commands[com_text], com_text)
-                    f(*l)
-                except:
-                    rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
-            else:
-                rmsg(response, "It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot")  # noqa: 501
-
-        # If not an ! or $, checks if it should respond to another message format, like a greeting  # noqa: 501
-        elif response["text"].lower() == "hey pantherbot":
-            # returns user info that said hey
-            # TODO make this use USER_LIST
-            temp_user = sc.api_call(
-                "users.info",
-                user = response["user"]  # noqa
-            )
-            print "PantherBot:LOG:Greeting:We did it reddit"
-            try:
-                # attempts to send a message to Slack, this one is the only one that needs this try thing so far, no clue why  # noqa: 501
-                rmsg(response, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])  # noqa: 501
-            except:
-                print "PantherBot:LOG:Greeting:Error in response"
-
-        elif response["text"].lower() == "pantherbot ping":
-            rmsg(response, ["PONG"])
-
-        elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":  # noqa: 501
-            rmsg(response, [":rip:"])
-        elif "panther hackers" in str(response["text"].lower()):
-            rmsg(response, ["NO THIS IS PANTHERHACKERS"])
-        elif "subtype" in response:
-            if response["subtype"] == "channel_leave":
-                rmsg(response, ["Press F to pay respects"])
+        # if riyansDenial():
+        #     return
+        if commandMessage(response):
+            return
+        if adminMessage(response):
+            return
+        if otherMessage(response):
+            return
 
     elif "team_join" == response["type"] and NEWUSERGREETING:
         print "Member joined team"
@@ -182,18 +94,131 @@ def on_message(ws, message):  # noqa: 103
         )
 
 
+def commandMessage(response):
+    # Checks if message starts with an exclamation point, and does the respective task  # noqa: 501
+    if response["text"][:1] == "!":
+        global pbCooldown
+        # put all ! command parameters into an array
+        args = response["text"].split()
+        com_text = args[0][1:].lower()
+        args.pop(0)  # gets rid of the command
+        # checks if command is an Admin command
+        if com_text in ADMIN_COMMANDS:
+            rmsg(response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])  # noqa: 501
+            return True
+        # special cases for some functions
+        if com_text == "pugbomb":
+            if pbCooldown < 100:
+                rmsg(response, ["Sorry, pugbomb is on cooldown"])
+                return True
+            else:
+                pbCooldown = 0
+        if com_text == "version":
+            rmsg(response, [VERSION])
+            return True
+        if com_text == "talk":
+            ch = channel_to_id([TTPB])
+            c = ch[0]
+            if response["channel"] != c:
+                rmsg(response, ["Talk to me in #" + TTPB])
+                return True
+        if com_text[0] == '!':
+            return True
+
+        # list that contains the response and args for all methods
+        l = []
+        l.append(response)
+        if len(args) > 0:
+            l.append(args)
+        # Attempts to find a command with the name matching the command given, and executes it  # noqa: 501
+        try:
+            f = getattr(commands[com_text], com_text)
+            rmsg(response, f(*l))
+            return True
+        except:
+            # If it fails, outputs that no command was found or syntax was broken.  # noqa: 501
+            rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
+            return True
+    return False
+
+
+def adminMessage(response):
+    # Repeats above except for admin commands
+    if response["text"][:1] == "$":
+        if response["user"] in ADMIN:
+            args = response["text"].split()
+            com_text = args[0][1:].lower()
+            args.pop(0)
+            # Special case for calendar requiring unique arguments
+            if com_text == "calendar":
+                if GOOGLECAL:
+                    rmsg(response, scripts.calendar.calendar(args, calendar_obj))  # noqa: 501
+                    return True
+            l = []
+            l.append(response)
+            l.append(args)
+            l.append(sc)
+            l.append(rmsg)
+            try:
+                f = getattr(commands[com_text], com_text)
+                f(*l)
+                return True
+            except:
+                rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
+                return True
+        else:
+            rmsg(response, "It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot")  # noqa: 501
+            return True
+    return False
+
+
+def otherMessage(response):
+    # If not an ! or $, checks if it should respond to another message format, like a greeting  # noqa: 501
+    if response["text"].lower() == "hey pantherbot":
+        # returns user info that said hey
+        # TODO make this use USER_LIST
+        temp_user = sc.api_call(
+            "users.info",
+            user = response["user"]  # noqa
+        )
+        print "PantherBot:LOG:Greeting:We did it reddit"
+        rmsg(response, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])  # noqa: 501
+        return True
+    elif response["text"].lower() == "pantherbot ping":
+        rmsg(response, ["PONG"])
+        return True
+    elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":  # noqa: 501
+        rmsg(response, [":rip:"])
+        return True
+    elif "panther hackers" in str(response["text"].lower()):
+        rmsg(response, ["NO THIS IS PANTHERHACKERS"])
+        return True
+    elif "subtype" in response:
+        if response["subtype"] == "channel_leave" or response["subtype"] == "group_leave":  # noqa: 501
+            rmsg(response, ["Press F to pay respects"])
+            return True
+    return False
+
+
+def riyansDenial():
+    if "U0LJJ7413" in response["user"]:
+        if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:  # noqa: 501
+            rmsg(response, "No.")
+            return True
+    return False
+
 # Less used WebSocket functions
-def on_error(ws, error):  # noqa: 103
+def on_error(ws, error):
     print "PantherBot:LOG:ERROR"
     print error
 
 
-def on_close(ws):  # noqa: 103
+def on_close(ws):
     print "PantherBot:LOG:Connection lost or closed..."
 
 
 # send a response message (sends to same channel as command was issued)
-def rmsg(response, l):  # noqa: 103
+def rmsg(response, l):
     for text in l:
         sc.api_call(
             "chat.postMessage",
@@ -205,7 +230,7 @@ def rmsg(response, l):  # noqa: 103
         print "PantherBot:LOG:Message sent"
 
 
-def rreaction(response, emoji):  # noqa: 103
+def rreaction(response, emoji):
     sc.api_call(
         "reactions.add",
         name=emoji,
@@ -215,7 +240,7 @@ def rreaction(response, emoji):  # noqa: 103
     print "PantherBot:LOG:Reaction posted"
 
 
-def channel_to_id(channel_names):  # noqa: 103
+def channel_to_id(channel_names):
     pub_channels = sc.api_call(
         "channels.list",
         exclude_archived=1
@@ -237,7 +262,9 @@ def channel_to_id(channel_names):  # noqa: 103
     return li
 
 
-def checkLog(LOG, LOGC):  # noqa: 103
+def checkLog():
+    global LOG
+    global LOGC
     filename = "config/log.txt"
     script_dir = os.path.dirname(__file__)
     fullDir = os.path.join(script_dir, filename)
