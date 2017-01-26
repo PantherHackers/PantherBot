@@ -1,5 +1,37 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+This module runs basically everything.
+
+Attributes:
+    VERSION = "1.1.7" (String): Version Number: release.version_num.revision_num
+
+    # Config Variables
+    BOT_NAME (String): Bot name that will appear in Slack on message posting
+    BOT_ICON_URL (String): Bot icon that will appear in Slack on message posting
+    SLACK (boolean): Config variable, toggles connecting to Slack RTM service
+    GOOGLECAL (boolean): Config variable, toggles connecting to Google Calendar API service
+    LOGGER (boolean): Config variable, toggles logger functionality
+    GOOGLECALSECRET (String): Config variable, file name for google-calendar secret in the secrets/ folder
+    NEWUSERGREETING (boolean): Config variable, toggles new user greeting for Slack team
+    GREETING (String): Config variable, String to be sent to new users on team join
+    EMOJI_LIST (List): List of Strings for emojis to be added to announcements
+    USER_LIST (JSON): List of users in JSON format
+    ADMIN (List): ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] testing defaults
+    ADMIN_COMMANDS (List): List of admin commands that cant be executed normallu
+    TTPB (String): Config variable, sets channel for cleverbot integration
+    GENERAL (Stirng): Config variable, sets channel for general name
+    LOG (boolean): Global Variable
+    LOGC (boolean): Global Variable
+    pbCooldown (int): Global Variable
+
+Todo:
+    * Move otherMessage response to user USER_LIST instead of api call
+
+.. _Google Python Style Guide:
+   http://google.github.io/styleguide/pyguide.html
+
+"""
+
 
 # Slack imports
 from slackclient import SlackClient
@@ -10,7 +42,7 @@ from apiclient.discovery import build
 # Other imports
 import scripts
 from scripts import commands
-import os, pdb, io, sys, time, platform, codecs, websocket, datetime, json, logging, random, logtofile  # noqa: 401
+import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  # noqa: 401
 
 # Version Number: release.version_num.revision_num
 VERSION = "1.1.7"
@@ -26,7 +58,7 @@ NEWUSERGREETING = False
 GREETING = ""
 EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]  # noqa: 501
 USER_LIST = []
-ADMIN = []  # testing defaults: ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"]  # noqa: 501
+ADMIN = []
 ADMIN_COMMANDS = ["log", "calendar", "admin"]
 TTPB = ""
 GENERAL = ""
@@ -64,13 +96,8 @@ def on_message(ws, message):
             logtofile.log(sc, response)
 
         # Announcement reactions
-        if GENERAL != "" and response["channel"] == GENERAL:
-            temp_list = list(EMOJI_LIST)
-            rreaction(response, "pantherbot")
-            for x in range(0, 3):
-                num = random.randrange(0, len(temp_list))
-                rreaction(response, temp_list.pop(num))
-        # if riyansDenial():
+        reactAnnouncement(response)
+        # if riyansDenial(response):
         #     return
         if commandMessage(response):
             return
@@ -79,17 +106,10 @@ def on_message(ws, message):
         if otherMessage(response):
             return
 
-    elif "team_join" == response["type"] and NEWUSERGREETING:
-        print "Member joined team"
-        print response
-        sc.api_call(
-            "chat.postMessage",
-            channel=response["user"]["id"],
-            text=GREETING,
-            username=BOT_NAME,
-            icon_url=BOT_ICON_URL
-        )
-        USER_LIST = sc.api_call(
+    elif "team_join" == response["type"]:
+        if NEWUSERGREETING:
+            newUserMessage(response)
+        USER_LIST = sc.api_call(  # noqa: 841
             "users.list",
         )
 
@@ -167,7 +187,7 @@ def adminMessage(response):
                 rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
                 return True
         else:
-            rmsg(response, "It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot")  # noqa: 501
+            rmsg(response, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])  # noqa: 501
             return True
     return False
 
@@ -200,12 +220,33 @@ def otherMessage(response):
     return False
 
 
-def riyansDenial():
+def riyansDenial(response):
     if "U0LJJ7413" in response["user"]:
         if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:  # noqa: 501
             rmsg(response, "No.")
             return True
     return False
+
+
+def newUserMessage(response):
+    print "PantherBot:LOG:Member joined team"
+    sc.api_call(
+        "chat.postMessage",
+        channel=response["user"]["id"],
+        text=GREETING,
+        username=BOT_NAME,
+        icon_url=BOT_ICON_URL
+    )
+
+
+def reactAnnouncement(response):
+    if GENERAL != "" and response["channel"] == GENERAL:
+        temp_list = list(EMOJI_LIST)
+        rreaction(response, "pantherbot")
+        for x in range(0, 3):
+            num = random.randrange(0, len(temp_list))
+            rreaction(response, temp_list.pop(num))
+
 
 # Less used WebSocket functions
 def on_error(ws, error):
