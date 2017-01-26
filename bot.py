@@ -13,7 +13,7 @@ from scripts import commands
 import os, pdb, io, sys, time, platform, codecs, websocket, datetime, json, logging, random, logtofile  # noqa: 401
 
 # Version Number: release.version_num.revision_num
-VERSION = "1.1.6"
+VERSION = "1.1.7"
 
 # Config Variables
 BOT_NAME = ""
