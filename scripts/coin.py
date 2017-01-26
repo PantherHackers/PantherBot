@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 import random
 
-#flips a coin
+
+# flips a coin
 def coin(response):
-	l = ["Heads", "Tails"]
-	m = random.randrange(0,2)
-	return [l[m]]
+    l = ["Heads", "Tails"]
+    m = random.randrange(0, 2)
+    return [l[m]]

@@ -2,20 +2,21 @@
 # -*- coding: utf-8 -*-
 import upsidedown
 
-#flips text using upsidedown module and has a donger for emohasis
+
+# flips text using upsidedown module and has a donger for emohasis
 def rage(response, args=[]):
-	toFlip = ''
-	donger = '(ノಠ益ಠ)ノ彡'
-	for n in range(0, len(args)):
-		toFlip += args[n] + " "
+    toFlip = ''
+    donger = '(ノಠ益ಠ)ノ彡'
+    for n in range(0, len(args)):
+        toFlip += args[n] + " "
 
-	if toFlip == '':
-		toFlip = unicode('┻━┻', "utf-8")
+    if toFlip == '':
+        toFlip = unicode('┻━┻', "utf-8")
 
-	try:
-		donger = unicode(donger, "utf-8")
-		flippedmsg = upsidedown.transform(toFlip)
-		return [donger + flippedmsg]
-	except:
-		print "PantherBot:Log:Flip:Error in flip"
-		return ["Sorry, I can't seem to flip right now, or you gave an invalid argument"]
+    try:
+        donger = unicode(donger, "utf-8")
+        flippedmsg = upsidedown.transform(toFlip)
+        return [donger + flippedmsg]
+    except:
+        print "PantherBot:Log:Flip:Error in flip"
+        return ["Sorry, I can't seem to flip right now, or you gave an invalid argument"]   # noqa: 501
