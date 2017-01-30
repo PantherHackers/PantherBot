@@ -223,7 +223,7 @@ def otherMessage(response):
 def riyansDenial(response):
     if "U0LJJ7413" in response["user"]:
         if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:  # noqa: 501
-            rmsg(response, "No.")
+            rmsg(response, ["No."])
             return True
     return False
 
