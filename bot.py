@@ -43,6 +43,7 @@ from apiclient.discovery import build
 import scripts
 from scripts import commands
 import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  # noqa: 401
+import re
 
 # Version Number: release.version_num.revision_num
 VERSION = "1.1.7"
@@ -210,7 +211,7 @@ def otherMessage(response):
     elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":  # noqa: 501
         rmsg(response, [":rip:"])
         return True
-    elif "panther hackers" in str(response["text"].lower()):
+    elif re.match(".*panther +hackers.*", str(response["text"].lower())):
         rmsg(response, ["NO THIS IS PANTHERHACKERS"])
         return True
     elif "subtype" in response:
