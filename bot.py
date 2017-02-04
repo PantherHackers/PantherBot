@@ -36,7 +36,7 @@ LOGC = []
 #pugbomb variable declared
 global pbCooldown
 pbCooldown = 100
-rdb = redis.Redis(host='localhost', port=6379, db=0)
+rdb = redis.Redis(host='127.0.0.1', port=6379, db=0)
 
 #function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything
 def on_message(ws, message):
