@@ -3,7 +3,7 @@
 This module runs basically everything.
 
 Attributes:
-    VERSION = "1.1.7" (String): Version Number: release.version_num.revision_num
+    VERSION = "1.1.8" (String): Version Number: release.version_num.revision_num
 
     # Config Variables
     BOT_NAME (String): Bot name that will appear in Slack on message posting
@@ -46,7 +46,7 @@ import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  #
 import re
 
 # Version Number: release.version_num.revision_num
-VERSION = "1.1.7"
+VERSION = "1.1.8"
 
 # Config Variables
 BOT_NAME = ""
