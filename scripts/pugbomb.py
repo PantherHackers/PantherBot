@@ -15,12 +15,8 @@ def pugbomb(response, args):
 	reddit = praw.Reddit(client_id='aGpQJujCarDHWA',
                      	client_secret='fkA9lp0NDx23B_qdFezTeGyGKu8',
                      	user_agent='my user agent',
-                        #I don't like having my credentials here, but 
-                        #here are some alts when that account gets enough karma
-                        password='goliharsha1',
-                        username='DeleteMyOldAccount')
-                        #password='PHGSU2017',
-                        #username='Panther_Bot')
+                        password='PHGSU2017',
+                        username='Panther_Bot')
     pug_urls=[]
     for submission in reddit.subreddit('pugs').hot(limit=num):
         pug_urls.append(submission.url)
