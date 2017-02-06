@@ -20,4 +20,4 @@ def pugbomb(response, args):
     pug_urls=[]
     for submission in reddit.subreddit('pugs').hot(limit=num):
         pug_urls.append(submission.url)
-	return l
+	return pug_urls
