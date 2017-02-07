@@ -6,3 +6,4 @@ logging
 websocket-client
 cleverbot
 pyaml
+praw
