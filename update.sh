@@ -1,5 +1,5 @@
 #!/bin/bash
-rm -r ../PantherBot-old
+rm -rf ../PantherBot-old
 cp -R ../PantherBot ../PantherBot-old
 git pull
 pkill -f bot.py
