@@ -5,7 +5,7 @@ import praw
 
 #pug bombs the chat and destroys this poor bot's soul
 def pugbomb(response, args):
-
+    
 	#gets the number
 	#num = [int(s) for s in response["text"].split() if s.isdigit()]
 	num = int(args[0])
