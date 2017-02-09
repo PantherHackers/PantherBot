@@ -10,7 +10,7 @@ def pugbomb(response, args):
     #num = int(args[0])
     if num > 10:
         num = 10
-        reddit = praw.Reddit(client_id='aGpQJujCarDHWA',
+    reddit = praw.Reddit(client_id='aGpQJujCarDHWA',
                      	client_secret='fkA9lp0NDx23B_qdFezTeGyGKu8',
                      	user_agent='my user agent',
                         password='PHGSU2017',
