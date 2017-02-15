@@ -26,6 +26,6 @@ def pugbomb(response, args):
         pug_urls.append(url)
 
     pug_urls.append("""
-        `Having issues? Try Preferences > Messages > 'Even if theyre larger than 2MB'`
+        `Having issues viewing pugs? Try Preferences > Messages > 'Even if theyre larger than 2MB'`
         """)  
     return pug_urls
