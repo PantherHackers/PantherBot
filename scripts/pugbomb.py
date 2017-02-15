@@ -12,8 +12,8 @@ def pugbomb(response, args):
         num = 10
 
     reddit = praw.Reddit(client_id='aGpQJujCarDHWA',
-                        client_secret='fkA9lp0NDx23B_qdFezTeGyGKu8',
-                        user_agent='my user agent',
+                     	client_secret='fkA9lp0NDx23B_qdFezTeGyGKu8',
+                     	user_agent='my user agent',
                         password='PHGSU2017',
                         username='Panther_Bot')
     
