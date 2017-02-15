@@ -19,11 +19,10 @@ def pugbomb(response, args):
     
     pug_urls=[]
     for submission in reddit.subreddit('pugs').hot(limit=num):
-        url = submission.url
-        if re.search(r'(imgur)', submission.url, flags = 0) != None and re.search(r'(\.jpg|\.png|\.jpeg)', submission.url, flags = 0) == None:
-            url+=('.jpg')
+        if 'imgur' in submission.url and not '.jpg' in submission.url and not '.png' in submission.url:
+            submission.url+=('.jpg')
         
-        pug_urls.append(url)
+        pug_urls.append(submission.url)
 
     pug_urls.append("""
         `Having issues viewing pugs? Try Preferences > Messages > 'Even if theyre larger than 2MB'`
