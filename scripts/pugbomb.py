@@ -19,7 +19,7 @@ def pugbomb(response, args):
     
     pug_urls=[]
     for submission in reddit.subreddit('pugs').hot(limit=num):
-        if 'imgur' in submission.url and not '.jpg' in submission.url and not '.png' in submission.url:
+        if 'imgur' in submission.url and not '.jpg' in submission.url and not '.png' in submission.url and not '.jpeg' in submission.url:
             submission.url+=('.jpg')
         
         pug_urls.append(submission.url)
