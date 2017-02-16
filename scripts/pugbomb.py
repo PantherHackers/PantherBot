@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#Created by Harsha Goli
 import praw
-import re
 
-#pug bombs the chat and destroys this poor bot's soul
+
 def pugbomb(response, args):
     #gets the number
     num = int(args[0])
