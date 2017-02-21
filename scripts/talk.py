@@ -3,7 +3,6 @@
 
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
-import pdb
 
 def talk(response, args=[]):
     cb = ChatBot('PantherBot')
@@ -15,9 +14,3 @@ def talk(response, args=[]):
         return [cb.get_response(" ".join(args)).text]
     except:
         return ["I'm feeling sick... come back later"]
-    
-
-    # try:
-    #     return [ChatBot('PantherBot').get_response(r)]
-    # except:
-    #     return ["Zzzzz. Leave me be..."]
