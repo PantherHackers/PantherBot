@@ -14,7 +14,7 @@ def talk(response, args=[]):
     try:
         return [cb.get_response(" ".join(args)).text]
     except:
-        return ['shit broke']
+        return ["I'm feeling sick... come back later"]
     
 
     # try:
