@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from cleverbot import Cleverbot
+from chatterbot import ChatBot
+from chatterbot.trainers import ChatterBotCorpusTrainer
 import pdb
 
 def talk(response, args=[]):
-    r = ""
-    for s in args:
-        r = r + s + " "
-    r = r.encode(encoding='utf-8')
+    cb = ChatBot('PantherBot')
+    cb.set_trainer(ChatterBotCorpusTrainer)
+    cb.train(
+    "chatterbot.corpus.english"
+    )
     try:
-        return [Cleverbot('PantherBot').ask(r)]
+        return [cb.get_response(" ".join(args)).text]
     except:
-        return ["Zzzzz. Leave me be..."]
+        return ['shit broke']
+    
+
+    # try:
+    #     return [ChatBot('PantherBot').get_response(r)]
+    # except:
+    #     return ["Zzzzz. Leave me be..."]
