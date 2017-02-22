@@ -100,11 +100,11 @@ def on_message(ws, message):
         reactAnnouncement(response)
         # if riyansDenial(response):
         #     return
+        if otherMessage(response):
+            return
         if commandMessage(response):
             return
         if adminMessage(response):
-            return
-        if otherMessage(response):
             return
 
     elif "team_join" == response["type"]:
@@ -195,7 +195,10 @@ def adminMessage(response):
 
 def otherMessage(response):
     # If not an ! or $, checks if it should respond to another message format, like a greeting  # noqa: 501
-    if response["text"].lower() == "hey pantherbot":
+    if re.match(".*panther +hackers.*", str(response["text"].lower())):
+        rmsg(response, ["NO THIS IS PANTHERHACKERS"])
+        return True
+    elif response["text"].lower() == "hey pantherbot":
         # returns user info that said hey
         # TODO make this use USER_LIST
         temp_user = sc.api_call(
