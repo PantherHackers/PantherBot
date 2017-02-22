@@ -17,6 +17,7 @@ def help(response):
     text += "!catfact\n"
     text += "!pugbomb <int>\n"
     text += "!taskme\n"
+    text += "!poll <begin/start/end/results> [arguments followed by a `;`]"
     text += "!talk <String>\n"
     text += "\"Hey PantherBot\"```\n"
     text += "Try saying `Hey PantherBot` or `!coin`"
