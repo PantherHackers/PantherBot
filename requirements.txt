@@ -4,6 +4,6 @@ upsidedown
 httplib2
 logging
 websocket-client
-cleverbot
+chatterbot
 pyaml
 praw
