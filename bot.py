@@ -71,12 +71,14 @@ global LOGC
 LOGC = []
 global pbCooldown
 pbCooldown = 100
+polling_list = dict()
 
 
 # function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything  # noqa: 501
 def on_message(ws, message):
-    s = message
-    response = json.loads(s)
+    
+    s = message.decode('utf-8')
+    response = json.loads(unicode(s))
     print "PantherBot:LOG:message:" + response["type"]
 
     # Pugbomb cooldown incrementation
@@ -89,6 +91,12 @@ def on_message(ws, message):
     if "message" == response["type"]:
         if "subtype" in response:
             if response["subtype"] == "bot_message":
+                #polling logic
+                if "POLL_BEGIN" in response["text"]:
+                    polling_list[response["channel"]][0] = response["ts"]
+                    temp_options = polling_list[response["channel"]][1]
+                    for key in temp_options:
+                        rreaction(response, temp_options[key].strip(":"))
                 return
         # Checks LOG and LOGC values, then
         # If LOG has been set to true it will save all spoken messages.
@@ -100,11 +108,11 @@ def on_message(ws, message):
         reactAnnouncement(response)
         # if riyansDenial(response):
         #     return
+        if otherMessage(response):
+            return
         if commandMessage(response):
             return
         if adminMessage(response):
-            return
-        if otherMessage(response):
             return
 
     elif "team_join" == response["type"]:
@@ -119,14 +127,19 @@ def commandMessage(response):
     # Checks if message starts with an exclamation point, and does the respective task  # noqa: 501
     if response["text"][:1] == "!":
         global pbCooldown
+
         # put all ! command parameters into an array
         args = response["text"].split()
         com_text = args[0][1:].lower()
         args.pop(0)  # gets rid of the command
+
+
         # checks if command is an Admin command
         if com_text in ADMIN_COMMANDS:
             rmsg(response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])  # noqa: 501
             return True
+
+
         # special cases for some functions
         if com_text == "pugbomb":
             if pbCooldown < 100:
@@ -134,27 +147,35 @@ def commandMessage(response):
                 return True
             else:
                 pbCooldown = 0
+
         if com_text == "version":
             rmsg(response, [VERSION])
             return True
+
         if com_text == "talk":
             ch = channel_to_id([TTPB])
             c = ch[0]
             if response["channel"] != c:
                 rmsg(response, ["Talk to me in #" + TTPB])
                 return True
+
         if com_text[0] == '!':
             return True
 
         # list that contains the response and args for all methods
-        l = []
-        l.append(response)
+        method_args = []
+        method_args.append(response)
+
+        if com_text == "poll":
+            method_args.append(polling_list[response["channel"]])
+            method_args.append(sc)
+
         if len(args) > 0:
-            l.append(args)
+            method_args.append(args)
         # Attempts to find a command with the name matching the command given, and executes it  # noqa: 501
         try:
-            f = getattr(commands[com_text], com_text)
-            rmsg(response, f(*l))
+            called_function = getattr(commands[com_text], com_text)
+            rmsg(response, called_function(*method_args))
             return True
         except:
             # If it fails, outputs that no command was found or syntax was broken.  # noqa: 501
@@ -195,36 +216,42 @@ def adminMessage(response):
 
 def otherMessage(response):
     # If not an ! or $, checks if it should respond to another message format, like a greeting  # noqa: 501
-    if response["text"].lower() == "hey pantherbot":
-        # returns user info that said hey
-        # TODO make this use USER_LIST
-        temp_user = sc.api_call(
-            "users.info",
-            user = response["user"]  # noqa
-        )
-        print "PantherBot:LOG:Greeting:We did it reddit"
-        rmsg(response, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])  # noqa: 501
-        return True
-    elif response["text"].lower() == "pantherbot ping":
-        rmsg(response, ["PONG"])
-        return True
-    elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":  # noqa: 501
-        rmsg(response, [":rip:"])
-        return True
-    elif re.match(".*panther +hackers.*", str(response["text"].lower())):
-        rmsg(response, ["NO THIS IS PANTHERHACKERS"])
-        return True
-    elif "subtype" in response:
-        if response["subtype"] == "channel_leave" or response["subtype"] == "group_leave":  # noqa: 501
-            rmsg(response, ["Press F to pay respects"])
+    try:
+        if re.match(".*panther +hackers.*", str(response["text"].lower())):
+            rmsg(response, ["NO THIS IS PANTHERHACKERS"])
             return True
-    return False
+        elif response["text"].lower() == "hey pantherbot":
+            # returns user info that said hey
+            # TODO make this use USER_LIST
+            temp_user = sc.api_call(
+                "users.info",
+                user = response["user"]  # noqa
+            )
+            print "PantherBot:LOG:Greeting:We did it reddit"
+            rmsg(response, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])  # noqa: 501
+            return True
+        elif response["text"].lower() == "pantherbot ping":
+            rmsg(response, ["PONG"])
+            return True
+        elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":  # noqa: 501
+            rmsg(response, [":rip:"])
+            return True
+        elif re.match(".*panther +hackers.*", str(response["text"].lower())):
+            rmsg(response, ["NO THIS IS PANTHERHACKERS"])
+            return True
+        elif "subtype" in response:
+            if response["subtype"] == "channel_leave" or response["subtype"] == "group_leave":  # noqa: 501
+                rmsg(response, ["Press F to pay respects"])
+                return True
+        return False
+    except:
+        print "Error with checking in otherMessage: likely the message contained unicode characters"
 
 
 def riyansDenial(response):
     if "U0LJJ7413" in response["user"]:
         if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:  # noqa: 501
-            rmsg(response, "No.")
+            rmsg(response, ["No."])
             return True
     return False
 
@@ -364,7 +391,7 @@ if __name__ == "__main__":
         target = open(fullDir, "w+")
         target.write('True\n')
         target.write('False\n')
-        target.write('False\n')
+        target.write('True\n')
         target.write('google-secret.json\n')
         target.write('True\n')
         target.write('Welcome to the team! You can get more help with Slack here: https://get.slack.help/\n')  # noqa: 501
@@ -443,6 +470,20 @@ if __name__ == "__main__":
                 USER_LIST = sc.api_call(
                     "users.list"
                 )
+
+                polling_list = {}
+                pub_channels = sc.api_call(
+                    "channels.list",
+                    exclude_archived=1
+                )
+                pri_channels = sc.api_call(
+                    "groups.list",
+                    exclude_archived=1
+                )
+                for c in pub_channels["channels"]:
+                    polling_list[c["id"]] = ["",[],"none"]
+                for c in pri_channels["groups"]:
+                    polling_list[c["id"]] = ["",[],"none"]
 
                 # Update current General Channel (usually announcements)
                 li = channel_to_id(["announcements"])

@@ -5,6 +5,8 @@ import os
 
 # enables logging of messages on a channel/channels, storing the logs sorted by channel by day in the format "channelID Y-M-D"  # noqa: 501
 def log(response, args, sc, rmsg):
+    global LOG
+    global LOGC
     LOG = False
     LOGC = []
 
