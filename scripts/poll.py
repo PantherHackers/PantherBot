@@ -6,11 +6,9 @@ STARTING_MESSAGE = "Sorry, a poll is already being set up in this channel. To ca
 BUSY_MESSAGE = "Sorry, a poll is already in progress in this channel. Please have the person hosting the poll cancel it, or ask an admin to end it using `!poll end`"
 
 def poll(response, options, sc, args):
-    print "We are in the poll function"
-
     if args[0] == "begin":
         """
-        set options[0] to the timestamp of the poll(that will be set by start), and options[1] to an array that contains the polling options, and options[2] to the status of the poll (none, starting, ongoing, ended).
+        set options[0] to the timestamp of the poll(that will be set by start's posted message (see bot.py)), and options[1] to an array that contains the polling options, and options[2] to the status of the poll (none, starting, ongoing, ended).
         options = ["timestamp",[polling_options],"status"]
         """
         if options[2] == "none":
@@ -104,7 +102,6 @@ def results(response, options, sc, args):
     count = 0
     for reaction in r["message"]["reactions"]:
         reac_dict[reaction["name"]] = reaction["count"]
-        print "comparing"
         if int(reaction["count"]) > count:
             winner = reaction["name"]
             count = int(reaction["count"])
