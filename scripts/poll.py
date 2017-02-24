@@ -48,15 +48,14 @@ def begin(response, options, args):
     op = []
     polling_options = []
     option_string = ""
-    for s in range(0, len(args)):
-        option_string = option_string + args[s] + " "
-        if ";" in args[s]:
+    for arg in args:
+        option_string = option_string + arg + " "
+        if ";" in arg:
             polling_options.append(option_string[:-2])
             option_string = ""
 
     message = "Options are:\n"
-    for option in polling_options:
-        message = message + option + "\n "
+    message = message + '\n'.join(polling_options)
     options[1] = polling_options
     options[2] = "starting"
     return ["Does this look correct?\n" + message, "If this is correct, type `!poll start` to begin your poll, or `!poll end` to cancel"]
@@ -68,8 +67,8 @@ def start(response, options, args):
     options[1] = dict()
     options[2] = "ongoing"
     message = ""
-    for s in range(0,len(ops)):
-        options[1][ops[s]] = arr_of_emojis[s]
+    for index, op in enumerate(ops):
+        options[1][op] = arr_of_emojis[index]
     for key in options[1]:
         message = message + key + ": " + options[1][key] + "\n"
     return ["Poll starting", "POLL_BEGIN " + response["channel"] + ";\n" + message]
@@ -78,14 +77,16 @@ def start(response, options, args):
 def end(response, options, sc, args):
     if options[2] in ["none", "starting"]:
         options[2] = "none"
+        options[1] = []
         return ["Poll cancelled"]
 
     elif options[2] == "ongoing":
-        options[2] = "ended"
+        options[2] = "none"
+        options[1] = []
         return ["Poll concluded", results(response,options,sc,args)]
 
     else:
-        options[2] = "ended"
+        options[2] = "none"
         return [results(response,options,sc,args)]
 
 

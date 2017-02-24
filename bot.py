@@ -163,19 +163,19 @@ def commandMessage(response):
             return True
 
         # list that contains the response and args for all methods
-        l = []
-        l.append(response)
+        method_args = []
+        method_args.append(response)
 
         if com_text == "poll":
-            l.append(polling_list[response["channel"]])
-            l.append(sc)
+            method_args.append(polling_list[response["channel"]])
+            method_args.append(sc)
 
         if len(args) > 0:
-            l.append(args)
+            method_args.append(args)
         # Attempts to find a command with the name matching the command given, and executes it  # noqa: 501
         try:
-            f = getattr(commands[com_text], com_text)
-            rmsg(response, f(*l))
+            called_function = getattr(commands[com_text], com_text)
+            rmsg(response, called_function(*method_args))
             return True
         except:
             # If it fails, outputs that no command was found or syntax was broken.  # noqa: 501
