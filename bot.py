@@ -403,8 +403,8 @@ if __name__ == "__main__":
         LOGGER = True
     GOOGLECALSECRET = target.readline().rstrip('\n')
     if target.readline().rstrip('\n') == "True":
-        GREETING = True
-    NEWUSERGREETING = target.readline().rstrip('\n')
+        NEWUSERGREETING = True
+    GREETING = target.readline().rstrip('\n')
     TTPB = target.readline().rstrip('\n')
     target.close()
 
