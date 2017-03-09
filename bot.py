@@ -187,30 +187,36 @@ def commandMessage(response):
 def adminMessage(response):
     # Repeats above except for admin commands
     if response["text"][:1] == "$":
-        if response["user"] in ADMIN:
+        # Checks if message is longer than "$"
+        if len(response["text"]) > 1:
             args = response["text"].split()
             com_text = args[0][1:].lower()
             args.pop(0)
-            # Special case for calendar requiring unique arguments
-            if com_text == "calendar":
-                if GOOGLECAL:
-                    rmsg(response, scripts.calendar.calendar(args, calendar_obj))  # noqa: 501
+
+            if response["user"] in ADMIN:
+                # Special case for calendar requiring unique arguments
+                if com_text == "calendar":
+                    if GOOGLECAL:
+                        rmsg(response, scripts.calendar.calendar(args, calendar_obj))  # noqa: 501
+                        return True
+                l = []
+                l.append(response)
+                l.append(args)
+                l.append(sc)
+                l.append(rmsg)
+                try:
+                    f = getattr(commands[com_text], com_text)
+                    f(*l)
                     return True
-            l = []
-            l.append(response)
-            l.append(args)
-            l.append(sc)
-            l.append(rmsg)
-            try:
-                f = getattr(commands[com_text], com_text)
-                f(*l)
+                except:
+                    rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
+                    return True
+
+            # Checks if command is an admin command
+            else if com_text in ADMIN_COMMANDS:
+                rmsg(response, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])  # noqa: 501
                 return True
-            except:
-                rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
-                return True
-        else:
-            rmsg(response, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])  # noqa: 501
-            return True
+    
     return False
 
 
