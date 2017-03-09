@@ -213,7 +213,7 @@ def adminMessage(response):
                     return True
 
             # Checks if command is an admin command
-            else if com_text in ADMIN_COMMANDS:
+            elif com_text in ADMIN_COMMANDS:
                 rmsg(response, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])  # noqa: 501
                 return True
     
