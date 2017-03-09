@@ -76,7 +76,7 @@ polling_list = dict()
 
 # function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything  # noqa: 501
 def on_message(ws, message):
-    
+
     s = message.decode('utf-8')
     response = json.loads(unicode(s))
     print "PantherBot:LOG:message:" + response["type"]
@@ -192,8 +192,13 @@ def adminMessage(response):
             args = response["text"].split()
             com_text = args[0][1:].lower()
             args.pop(0)
+            # Checks if pattern differs from admin commands
+            # by containing digits or another "$" character
+            com_pattern = (re.compile("[0-9]"), re.compile("[$]"))
+            if com_pattern[0].search(com_text) or com_pattern[1].search(com_text)
+                return False
 
-            if response["user"] in ADMIN:
+            elif response["user"] in ADMIN:
                 # Special case for calendar requiring unique arguments
                 if com_text == "calendar":
                     if GOOGLECAL:
@@ -216,7 +221,7 @@ def adminMessage(response):
             elif com_text in ADMIN_COMMANDS:
                 rmsg(response, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])  # noqa: 501
                 return True
-    
+
     return False
 
 
