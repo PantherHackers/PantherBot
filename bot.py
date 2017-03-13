@@ -195,9 +195,11 @@ def adminMessage(response):
             # Checks if pattern differs from admin commands
             # by containing digits or another "$" character
             com_pattern = (re.compile("[0-9]"), re.compile("[$]"))
-            if com_pattern[0].search(com_text) or com_pattern[1].search(com_text)
+            try:
+                if com_pattern[0].search(com_text) or com_pattern[1].search(com_text)
                 return False
-
+            except:
+                
             elif response["user"] in ADMIN:
                 # Special case for calendar requiring unique arguments
                 if com_text == "calendar":
