@@ -200,8 +200,8 @@ def adminMessage(response):
                     return False
             except:
                 pass
-            
-            elif response["user"] in ADMIN:
+
+            if response["user"] in ADMIN:
                 # Special case for calendar requiring unique arguments
                 if com_text == "calendar":
                     if GOOGLECAL:
