@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 STARTING_MESSAGE = "Sorry, a poll is already being set up in this channel. To cancel a poll that has not begun yet, say `!poll end`"
 BUSY_MESSAGE = "Sorry, a poll is already in progress in this channel. Please have the person hosting the poll cancel it, or ask an admin to end it using `!poll end`"
 
@@ -53,7 +52,8 @@ def begin(response, options, args):
         if ";" in arg:
             polling_options.append(option_string[:-2])
             option_string = ""
-
+    if len(polling_options) > 10:
+        return ["Sorry, I'm currently capped at ten options right now, what kind of poll are you looking to do?"]
     message = "Options are:\n"
     message = message + '\n'.join(polling_options)
     options[1] = polling_options
@@ -62,7 +62,7 @@ def begin(response, options, args):
 
 
 def start(response, options, args):
-    arr_of_emojis = [":one:",":two:",":three:",":four:",":five:"]
+    arr_of_emojis = [":one:",":two:",":three:",":four:",":five:",":six:",":seven:",":eight:",":nine:",":keycap_ten:"]
     ops = options[1]
     options[1] = dict()
     options[2] = "ongoing"
@@ -77,12 +77,10 @@ def start(response, options, args):
 def end(response, options, sc, args):
     if options[2] in ["none", "starting"]:
         options[2] = "none"
-        options[1] = []
         return ["Poll cancelled"]
 
     elif options[2] == "ongoing":
         options[2] = "none"
-        options[1] = []
         return ["Poll concluded", results(response,options,sc,args)]
 
     else:
@@ -102,14 +100,14 @@ def results(response, options, sc, args):
     winner = ""
     count = 0
     for reaction in r["message"]["reactions"]:
-        reac_dict[reaction["name"]] = reaction["count"]
-        if int(reaction["count"]) > count:
-            winner = reaction["name"]
-            count = int(reaction["count"])
+        reac_dict[reaction["name"]] = reaction["count"] - 1
+        # if int(reaction["count"]) > count:
+        #     winner = reaction["name"]
+        #     count = int(reaction["count"])
 
     message = "Results:\n"
-    for key in reac_dict:
-        message = message + key + ": " + str(reac_dict[key]) + "\n"
+    for key in options[1]:
+        message = message + key + ": " + str(reac_dict[options[1][key].strip(":")]) + "\n"
         
-    message += "\nThe Winner is:\n:tada:" + winner + ":tada:"
+    # message += "\nThe Winner is:\n:tada:" + winner + ":tada:"
     return message
