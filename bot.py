@@ -142,13 +142,11 @@ def on_message(ws, message):
     log(response)   
 
 def log(response):
-    print '########logging'
     global engine
 
     if response["type"] == "message":
         return
     if response["type"] == "team_join":
-        print '########team_joined'
         first_name = response["user"]["profile"]["first_name"]
         last_name = response["user"]["profile"]["last_name"]
         slack_id = response["user"]["id"]
@@ -157,9 +155,8 @@ def log(response):
             is_admin = 1
         else:
             is_admin = 0
-            print 'executing'
-
         try:
+            #TODO: santize code to prevent SQL Injection
             engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(slack_id)+"', '"+first_name+"', '"+last_name+"', "+str(is_admin)+")")
         except Exception:
             print(sys.exc_info()[1])
@@ -167,6 +164,12 @@ def log(response):
     if response["type"] == "reaction_added":
         return
     if response["type"] == "channel_created":
+        id = response["channel"]["id"]
+        name = response["channel"]["name"]
+        try:
+            engine.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+id+"', '"+name+"', False, True)")
+        except Exception:
+            print(sys.exc_info()[1])
         return
 
 def command_message(response):
