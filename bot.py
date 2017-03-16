@@ -3,7 +3,7 @@
 This module runs basically everything.
 
 Attributes:
-    VERSION = "1.1.8" (String): Version Number: release.version_num.revision_num
+    VERSION = "1.1.9" (String): Version Number: release.version_num.revision_num
 
     # Config Variables
     BOT_NAME (String): Bot name that will appear in Slack on message posting
@@ -24,9 +24,6 @@ Attributes:
     LOGC (boolean): Global Variable
     pbCooldown (int): Global Variable
 
-Todo:
-    * Move otherMessage response to user USER_LIST instead of api call
-
 .. _Google Python Style Guide:
    http://google.github.io/styleguide/pyguide.html
 
@@ -46,7 +43,7 @@ import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  #
 import re
 
 # Version Number: release.version_num.revision_num
-VERSION = "1.1.8"
+VERSION = "1.1.9"
 
 # Config Variables
 BOT_NAME = ""
@@ -100,30 +97,30 @@ def on_message(ws, message):
                 return
         # Checks LOG and LOGC values, then
         # If LOG has been set to true it will save all spoken messages.
-        checkLog()
+        check_log()
         if LOG and response["channel"] in LOGC:
             logtofile.log(sc, response)
 
         # Announcement reactions
-        reactAnnouncement(response)
+        react_announcement(response)
         # if riyansDenial(response):
         #     return
-        if otherMessage(response):
+        if other_message(response):
             return
-        if commandMessage(response):
+        if command_message(response):
             return
-        if adminMessage(response):
+        if admin_message(response):
             return
 
     elif "team_join" == response["type"]:
         if NEWUSERGREETING:
-            newUserMessage(response)
+            new_user_message(response)
         USER_LIST = sc.api_call(  # noqa: 841
             "users.list",
         )
 
 
-def commandMessage(response):
+def command_message(response):
     # Checks if message starts with an exclamation point, and does the respective task  # noqa: 501
     if response["text"][:1] == "!":
         global pbCooldown
@@ -184,7 +181,7 @@ def commandMessage(response):
     return False
 
 
-def adminMessage(response):
+def admin_message(response):
     # Repeats above except for admin commands
     if response["text"][:1] == "$":
         if response["user"] in ADMIN:
@@ -214,7 +211,7 @@ def adminMessage(response):
     return False
 
 
-def otherMessage(response):
+def other_message(response):
     # If not an ! or $, checks if it should respond to another message format, like a greeting  # noqa: 501
     try:
         if re.match(".*panther +hackers.*", str(response["text"].lower())):
@@ -245,10 +242,10 @@ def otherMessage(response):
                 return True
         return False
     except:
-        print "Error with checking in otherMessage: likely the message contained unicode characters"
+        print "Error with checking in other_message: likely the message contained unicode characters"
 
 
-def riyansDenial(response):
+def riyans_denial(response):
     if "U0LJJ7413" in response["user"]:
         if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:  # noqa: 501
             rmsg(response, ["No."])
@@ -256,7 +253,7 @@ def riyansDenial(response):
     return False
 
 
-def newUserMessage(response):
+def new_user_message(response):
     print "PantherBot:LOG:Member joined team"
     sc.api_call(
         "chat.postMessage",
@@ -267,7 +264,7 @@ def newUserMessage(response):
     )
 
 
-def reactAnnouncement(response):
+def react_announcement(response):
     if GENERAL != "" and response["channel"] == GENERAL:
         temp_list = list(EMOJI_LIST)
         rreaction(response, "pantherbot")
@@ -331,7 +328,7 @@ def channel_to_id(channel_names):
     return li
 
 
-def checkLog():
+def check_log():
     global LOG
     global LOGC
     filename = "config/log.txt"
@@ -406,8 +403,8 @@ if __name__ == "__main__":
         LOGGER = True
     GOOGLECALSECRET = target.readline().rstrip('\n')
     if target.readline().rstrip('\n') == "True":
-        GREETING = True
-    NEWUSERGREETING = target.readline().rstrip('\n')
+        NEWUSERGREETING = True
+    GREETING = target.readline().rstrip('\n')
     TTPB = target.readline().rstrip('\n')
     target.close()
 
