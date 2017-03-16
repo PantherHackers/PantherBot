@@ -145,6 +145,18 @@ def log(response):
     global engine
 
     if response["type"] == "message":
+        channel = response["channel"]
+        user = response["user"]
+        try:
+            engine.execute("INSERT IGNORE INTO channelActivity (from_user_id, to_channel_id, comment_count) VALUES ('"+user+"', '"+channel+"', 0")
+        except Exception:
+            print 'FAILING ON INSERT'
+            print(sys.exc_info()[1])
+        try:
+            engine.execute("UPDATE channelActivity SET comment_count = comment_count+1 WHERE from_user_id = "+user+" and to_channel_id = "+channel)
+        except Exception:
+            print 'FAILING ON UPDATE'
+            print(sys.exc_info()[1])
         return
     if response["type"] == "team_join":
         first_name = response["user"]["profile"]["first_name"]
