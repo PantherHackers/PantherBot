@@ -43,7 +43,7 @@ import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  #
 import re
 
 #SQLAlchemy imports
-from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String
+from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String, OperationalError
 
 import requests
 
@@ -202,11 +202,10 @@ def setup_tables():
 
     users = requests.get('https://slack.com/api/users.list?token=xoxp-112432628209-121814340723-155242686405-56755e53b4a6a4a20323ddd648606fd2&presence=false&pretty=1').json()
     for member in users["members"]:
-        b
+        b=0
         if member["profile"]["is_admin"]:
             b = 1
-        else:
-            b = 0
+        
         engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(member["id"])+"', '"+member["profile"]["first_name"]+"', '"+member["profile"]["last_name"]+"', "+str(b)+")")
     print 'Assembling the quad-processor enabled brain'
     channels = requests.get("https://slack.com/api/channels.list?token=xoxp-112432628209-121814340723-155242686405-56755e53b4a6a4a20323ddd648606fd2&pretty=1").json()
@@ -601,4 +600,4 @@ if __name__ == "__main__":
     else:
         print "PantherBot:LOG:Slack connection disabled... why?"
 
-# select_setup()
+select_setup()
