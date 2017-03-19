@@ -45,6 +45,8 @@ import re
 #SQLAlchemy imports
 from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String
 
+import requests
+
 # Version Number: release.version_num.revision_num
 VERSION = "1.1.9"
 
@@ -77,20 +79,6 @@ polling_list = dict()
 #import pdb; pdb.set_trace()
 engine = create_engine('mysql://root@localhost:3306/fucknigga', echo=False)
 metadata = MetaData(bind=engine)
-
-# def setup_tables():
-#     global engine
-#     try:
-#         engine.connect()
-#     except OperationalError:
-#         engine = create_engine('mysql://root@localhost:3306')
-#         engine.execute("CREATE DATABASE fucknigga")
-#         engine.execute("USE fucknigga")
-#     try:
-#         engine.execute("")
-#     except OperationalError:
-#         pass
-
 
 # function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything  # noqa: 501
 def on_message(ws, message):
@@ -174,6 +162,16 @@ def log(response):
             print(sys.exc_info()[1])
         return
     if response["type"] == "reaction_added":
+        from_user = response["user"]
+        to_user = response["item_user"]
+        reaction = response["reaction"]
+        channel = ""
+        if response["item"]["type"] == "message":
+            channel = response["item"]["channel"]
+        else:
+            continue
+
+
         return
     if response["type"] == "channel_created":
         id = response["channel"]["id"]
@@ -183,6 +181,37 @@ def log(response):
         except Exception:
             print(sys.exc_info()[1])
         return
+
+def setup_tables():
+    global engine
+    try:
+        engine.connect()
+    except OperationalError:
+        engine = create_engine('mysql://root@localhost:3306')
+        engine.execute("CREATE DATABASE fucknigga")
+        engine.execute("USE fucknigga")
+    try:
+        engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive BOOL, is_active BOOL, PRIMARY KEY (slack_id))")
+        engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin BOOL, PRIMARY KEY (slack_id))")
+        engine.execute("CREATE TABLE channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, PRIMARY KEY (from_user_id, to_channel_id) FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
+        engine.execute("CREATE TABLE EmojiActivity(from_user_id VARCHAR(9), to_user_id VARCHAR(9), in_channel_id VARCHAR(9), emoji_name VARCHAR(60), given_count INTEGER, PRIMARY KEY (from_user_id, to_user_id, in_channel_id, emoji_name),  FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_user_id) REFERENCES users (slack_id), FOREIGN KEY (in_channel_id) REFERENCES channels (slack_id));")
+        
+    except Exception:
+            print(sys.exc_info()[1])
+
+    users = requests.get('https://slack.com/api/users.list?token=xoxp-112432628209-121814340723-155242686405-56755e53b4a6a4a20323ddd648606fd2&presence=false&pretty=1').json()
+    for member in users["members"]:
+        b
+        if member["profile"]["is_admin"]:
+            b = 1
+        else:
+            b = 0
+        engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(member["id"])+"', '"+member["profile"]["first_name"]+"', '"+member["profile"]["last_name"]+"', "+str(b)+")")
+
+    channels = requests.get("https://slack.com/api/channels.list?token=xoxp-112432628209-121814340723-155242686405-56755e53b4a6a4a20323ddd648606fd2&pretty=1").json()
+    for channel in channels["channels"]:
+        
+
 
 def command_message(response):
     # Checks if message starts with an exclamation point, and does the respective task  # noqa: 501
