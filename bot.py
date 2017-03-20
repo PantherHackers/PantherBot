@@ -221,6 +221,8 @@ def admin_message(response):
             elif com_text in ADMIN_COMMANDS:
                 rmsg(response, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])  # noqa: 501
                 return True
+			else:
+				rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
 
     return False
 
