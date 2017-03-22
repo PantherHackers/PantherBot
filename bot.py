@@ -43,7 +43,7 @@ import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  #
 import re
 
 #SQLAlchemy imports
-from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String, OperationalError
+from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String
 
 import requests
 
@@ -76,8 +76,12 @@ pbCooldown = 100
 polling_list = dict()
 
 #Initialization
-#import pdb; pdb.set_trace()
+print 'Starting boot sequence'
 engine = create_engine('mysql://root@localhost:3306/fucknigga', echo=False)
+
+# if os.environ['PB_ENV'] == 'production':
+#     #Prodcution shit here
+#     pass
 metadata = MetaData(bind=engine)
 
 # function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything  # noqa: 501
@@ -131,49 +135,85 @@ def on_message(ws, message):
 
 def log(response):
     global engine
+    def add_user(r):
+            print 'add_user called'
+
+            if r["user"] is dict:
+                print 'using dict'
+                first_name = r["user"]["profile"]["first_name"]
+                last_name = r["user"]["profile"]["last_name"]
+                slack_id = r["user"]["id"]
+                is_admin = r["user"]["is_admin"]
+                if is_admin:
+                    is_admin = 1
+                else:
+                    is_admin = 0
+                try:
+                    #TODO: santize code to prevent SQL Injection
+                    print 'attemtping to insert'
+                    engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(slack_id)+"', '"+first_name+"', '"+last_name+"', "+str(is_admin)+")")
+                except Exception:
+                    print 'failing with dict'
+                    print(sys.exc_info()[1])
+            else:
+                print 'going non dict'
+                try:  
+                    slack_id = r["user"]
+                except Exception:
+                    print 'failing'
+                    print(sys.exc_info()[1])
+
+                # try:
+                    #TODO: santize code to prevent SQL Injection
+                print 'attemtping to insert with min values'
+                engine.execute("INSERT IGNORE INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(slack_id)+"', null, null, null)")
+                # except Exception:
+                #     print 'failing'
+                #     print(sys.exc_info()[1])
+            
+            print 'ending'
 
     if response["type"] == "message":
-        channel = response["channel"]
-        user = response["user"]
+        print 'message recieved'
+        channel_id = response["channel"]
+        user_id = response["user"]
+
+        # try:
+        #     engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel+"', '"+name+"', False, True)")
+        # except Exception:
+        #     print(sys.exc_info()[1])
+        # return
+
+        add_user(response)
         try:
-            engine.execute("INSERT IGNORE INTO channelActivity (from_user_id, to_channel_id, comment_count) VALUES ('"+user+"', '"+channel+"', 0")
-        except Exception:
-            print 'FAILING ON INSERT'
-            print(sys.exc_info()[1])
-        try:
-            engine.execute("UPDATE channelActivity SET comment_count = comment_count+1 WHERE from_user_id = "+user+" and to_channel_id = "+channel)
+            print 'trying to add to channelactivity'
+            engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel_id+"', null, False, True)")
+            engine.execute("INSERT IGNORE INTO channelActivity (from_user_id, to_channel_id, comment_count) VALUES ('"+user_id+"', '"+channel_id+"', 0)")
+            engine.execute("UPDATE channelActivity SET comment_count = comment_count+1 WHERE from_user_id = '"+user_id+"' and to_channel_id = '"+channel_id+"'")
+            print 'I guess all these statements passed'
         except Exception:
             print 'FAILING ON UPDATE'
             print(sys.exc_info()[1])
         return
     if response["type"] == "team_join":
-        first_name = response["user"]["profile"]["first_name"]
-        last_name = response["user"]["profile"]["last_name"]
-        slack_id = response["user"]["id"]
-        is_admin = response["user"]["is_admin"]
-        if is_admin:
-            is_admin = 1
-        else:
-            is_admin = 0
-        try:
-            #TODO: santize code to prevent SQL Injection
-            engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(slack_id)+"', '"+first_name+"', '"+last_name+"', "+str(is_admin)+")")
-        except Exception:
-            print(sys.exc_info()[1])
-        return
+        add_user(response)
+    
     if response["type"] == "reaction_added":
-        from_user = response["user"]
-        to_user = response["item_user"]
-        reaction = response["reaction"]
-        channel = ""
+        print 'reaction added'
         if response["item"]["type"] == "message":
+            from_user = response["user"]
+            to_user = response["item_user"]
             channel = response["item"]["channel"]
-        else:
-            continue
-
-
+            reaction = response["reaction"]
+            if len(reaction) > 60:
+                reaction = reaction[:60]
+            add_user(response)
+            engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES ('"+reaction+"', 0)")
+            engine.execute("INSERT IGNORE INTO EmojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name) VALUES('"+from_user+"', '"+to_user+"', '"+channel+"', '"+reaction+"')")
+            engine.execute("UPDATE EmojiActivity SET given_count = given_count+1 WHERE from_user_id = "+from_user+" and to_user_id = "+to_user+"and in_channel_id = "+channel+" and emoji_name = "+reaction)
         return
     if response["type"] == "channel_created":
+        print 'channel created'
         id = response["channel"]["id"]
         name = response["channel"]["name"]
         try:
