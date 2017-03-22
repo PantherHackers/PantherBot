@@ -269,32 +269,13 @@ def setup_tables():
         print '1'
         engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin BOOL, PRIMARY KEY (slack_id))")
         print '2'
-
         engine.execute("create table channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
-
         print '3'
-
         engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom BOOL, PRIMARY KEY (name))")
-
         print '4'
-
-
         engine.execute("create table channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
     except Exception:
             print(sys.exc_info()[1])
-
-    users = requests.get('https://slack.com/api/users.list?token=xoxp-112432628209-121814340723-155242686405-56755e53b4a6a4a20323ddd648606fd2&presence=false&pretty=1').json()
-    for member in users["members"]:
-        b=0
-        if member["profile"]["is_admin"]:
-            b = 1
-        
-        engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(member["id"])+"', '"+member["profile"]["first_name"]+"', '"+member["profile"]["last_name"]+"', "+str(b)+")")
-    print 'Assembling the quad-processor enabled brain'
-    channels = requests.get("https://slack.com/api/channels.list?token=xoxp-112432628209-121814340723-155242686405-56755e53b4a6a4a20323ddd648606fd2&pretty=1").json()
-    for channel in channels["channels"]:
-        engine.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel["id"]+"', '"+channel["name"]+"', 0, 1);")
-    print 'Constructing the nanometers'
 
 setup_tables()
 
