@@ -178,23 +178,16 @@ def log(response):
         channel_id = response["channel"]
         user_id = response["user"]
 
-        # try:
-        #     engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel+"', '"+name+"', False, True)")
-        # except Exception:
-        #     print(sys.exc_info()[1])
-        # return
-
         add_user(response)
         try:
-            print 'trying to add to channelactivity'
             engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel_id+"', null, False, True)")
             engine.execute("INSERT IGNORE INTO channelActivity (from_user_id, to_channel_id, comment_count) VALUES ('"+user_id+"', '"+channel_id+"', 0)")
             engine.execute("UPDATE channelActivity SET comment_count = comment_count+1 WHERE from_user_id = '"+user_id+"' and to_channel_id = '"+channel_id+"'")
-            print 'I guess all these statements passed'
         except Exception:
             print 'FAILING ON UPDATE'
             print(sys.exc_info()[1])
         return
+
     if response["type"] == "team_join":
         add_user(response)
     
@@ -208,18 +201,25 @@ def log(response):
             if len(reaction) > 60:
                 reaction = reaction[:60]
             add_user(response)
-            engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES ('"+reaction+"', 0)")
-            engine.execute("INSERT IGNORE INTO EmojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name) VALUES('"+from_user+"', '"+to_user+"', '"+channel+"', '"+reaction+"')")
-            engine.execute("UPDATE EmojiActivity SET given_count = given_count+1 WHERE from_user_id = "+from_user+" and to_user_id = "+to_user+"and in_channel_id = "+channel+" and emoji_name = "+reaction)
+            try:
+                engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel+"', null, False, True)")
+                engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES ('"+reaction+"', 0)")
+                engine.execute("INSERT IGNORE INTO EmojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES('"+from_user+"', '"+to_user+"', '"+channel+"', '"+reaction+"', 0)")
+                engine.execute("UPDATE EmojiActivity SET given_count = given_count+1 WHERE from_user_id = '"+from_user+"' and to_user_id = '"+to_user+"' and in_channel_id = '"+channel+"' and emoji_name = '"+reaction+"'")
+            except Exception:
+                print(sys.exc_info()[1])
         return
+        
     if response["type"] == "channel_created":
         print 'channel created'
         id = response["channel"]["id"]
         name = response["channel"]["name"]
         try:
-            engine.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+id+"', '"+name+"', False, True)")
+            engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+id+"', '"+name+"', False, True)")
         except Exception:
             print(sys.exc_info()[1])
+
+        print 'we got to the end'
         return
 
 def setup_tables():
