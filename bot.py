@@ -209,7 +209,25 @@ def log(response):
             except Exception:
                 print(sys.exc_info()[1])
         return
-        
+
+    if response["type"] == "reaction_removed":
+        if response["item"]["type"] == "message":
+            from_user = response["user"]
+            to_user = response["item_user"]
+            channel = response["item"]["channel"]
+            reaction = response["reaction"]
+            if len(reaction) > 60:
+                reaction = reaction[:60]
+            add_user(response)
+            try:
+                engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel+"', null, False, True)")
+                engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES ('"+reaction+"', 0)")
+                engine.execute("INSERT IGNORE INTO EmojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES('"+from_user+"', '"+to_user+"', '"+channel+"', '"+reaction+"', 0)")
+                engine.execute("UPDATE EmojiActivity SET given_count = given_count-1 WHERE from_user_id = '"+from_user+"' and to_user_id = '"+to_user+"' and in_channel_id = '"+channel+"' and emoji_name = '"+reaction+"'")
+            except Exception:
+                print(sys.exc_info()[1])
+        return
+
     if response["type"] == "channel_created":
         print 'channel created'
         id = response["channel"]["id"]
