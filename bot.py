@@ -159,14 +159,15 @@ def log(response):
         print 'message recieved'
         channel_id = response["channel"]
         user_id = response["user"]
-
         add_user(response)
         engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel_id+"', null, False, True)")
         engine.execute("INSERT IGNORE INTO channelActivity (from_user_id, to_channel_id, comment_count) VALUES ('"+user_id+"', '"+channel_id+"', 0)")
         engine.execute("UPDATE channelActivity SET comment_count = comment_count+1 WHERE from_user_id = '"+user_id+"' and to_channel_id = '"+channel_id+"'")
+        return
         
     if response["type"] == "team_join":
         add_user(response)
+        return
     
     if response["type"] == "reaction_added":
         print 'reaction added'
@@ -182,7 +183,6 @@ def log(response):
             engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES ('"+reaction+"', 0)")
             engine.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES('"+from_user+"', '"+to_user+"', '"+channel+"', '"+reaction+"', 0)")
             engine.execute("UPDATE emojiActivity SET given_count = given_count+1 WHERE from_user_id = '"+from_user+"' and to_user_id = '"+to_user+"' and in_channel_id = '"+channel+"' and emoji_name = '"+reaction+"'")
-           
         return
 
     if response["type"] == "reaction_removed":
@@ -205,16 +205,17 @@ def log(response):
         id = response["channel"]["id"]
         name = response["channel"]["name"]
         engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+id+"', '"+name+"', False, True)")
-       
         return
 
     if response["type"] == "channel_archive":
         id = response["channel"]
         engine.execute("UPDATE channels SET is_active = 0 WHERE slack_id = '"+id+"'")
+        return
 
     if response["type"] == "channel_unarchive":
         id = response["channel"]
         engine.execute("UPDATE channels SET is_active = 1 WHERE slack_id = '"+id+"'")
+        return
 
 def setup_tables():
     global engine
@@ -225,12 +226,11 @@ def setup_tables():
         engine = create_engine('mysql://root@localhost:3306')
         engine.execute("CREATE DATABASE pantherbot_test")
         engine.execute("USE pantherbot_test")
-    
-    engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive BOOL, is_active BOOL, PRIMARY KEY (slack_id))")
-    engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin BOOL, PRIMARY KEY (slack_id))")
-    engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom BOOL, PRIMARY KEY (name))")
-    engine.execute("CREATE TABLE channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
-    engine.execute("CREATE TABLE emojiActivity(from_user_id VARCHAR(9), to_user_id VARCHAR(9), in_channel_id VARCHAR(9), emoji_name VARCHAR(60), given_count INTEGER, PRIMARY KEY (from_user_id, to_user_id, in_channel_id, emoji_name),  FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_user_id) REFERENCES users (slack_id), FOREIGN KEY (in_channel_id) REFERENCES channels (slack_id))")    
+        engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive TINYINT, is_active TINYINT, PRIMARY KEY (slack_id))")
+        engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin TINYINT, PRIMARY KEY (slack_id))")
+        engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom TINYINT, PRIMARY KEY (name))")
+        engine.execute("CREATE TABLE channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
+        engine.execute("CREATE TABLE emojiActivity(from_user_id VARCHAR(9), to_user_id VARCHAR(9), in_channel_id VARCHAR(9), emoji_name VARCHAR(60), given_count INTEGER, PRIMARY KEY (from_user_id, to_user_id, in_channel_id, emoji_name),  FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_user_id) REFERENCES users (slack_id), FOREIGN KEY (in_channel_id) REFERENCES channels (slack_id))")    
 
 setup_tables()
 
