@@ -250,19 +250,36 @@ def log(response):
 
 def setup_tables():
     global engine
-    try:
-        engine.connect()
-    except OperationalError:
-        print 'Creating the PB database'
-        engine = create_engine('mysql://root@localhost:3306')
-        engine.execute("CREATE DATABASE pantherbot_test")
-        engine.execute("USE pantherbot_test")
+
+    print 'Creating the PB database'
+    engine = create_engine('mysql://root@localhost:3306')
+    engine.execute("CREATE DATABASE pantherbot_test")
+    engine.execute("USE pantherbot_test")
+
+    # try:
+    #     engine.connect()
+    # except OperationalError:
+    #     print 'Creating the PB database'
+    #     engine = create_engine('mysql://root@localhost:3306')
+    #     engine.execute("CREATE DATABASE pantherbot_test")
+    #     engine.execute("USE pantherbot_test")
     try:
         print 'Creating tables'
         engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive BOOL, is_active BOOL, PRIMARY KEY (slack_id))")
+        print '1'
         engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin BOOL, PRIMARY KEY (slack_id))")
-        engine.execute("CREATE TABLE channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, PRIMARY KEY (from_user_id, to_channel_id) FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
-        engine.execute("CREATE TABLE EmojiActivity(from_user_id VARCHAR(9), to_user_id VARCHAR(9), in_channel_id VARCHAR(9), emoji_name VARCHAR(60), given_count INTEGER, PRIMARY KEY (from_user_id, to_user_id, in_channel_id, emoji_name),  FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_user_id) REFERENCES users (slack_id), FOREIGN KEY (in_channel_id) REFERENCES channels (slack_id));")
+        print '2'
+
+        engine.execute("create table channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
+
+        print '3'
+
+        engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom BOOL, PRIMARY KEY (name))")
+
+        print '4'
+
+
+        engine.execute("create table channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
     except Exception:
             print(sys.exc_info()[1])
 
@@ -278,6 +295,8 @@ def setup_tables():
     for channel in channels["channels"]:
         engine.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel["id"]+"', '"+channel["name"]+"', 0, 1);")
     print 'Constructing the nanometers'
+
+setup_tables()
 
 def command_message(response):
     # Checks if message starts with an exclamation point, and does the respective task  # noqa: 501
@@ -665,5 +684,3 @@ if __name__ == "__main__":
                 time.sleep(10)
     else:
         print "PantherBot:LOG:Slack connection disabled... why?"
-
-select_setup()
