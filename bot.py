@@ -250,32 +250,20 @@ def log(response):
 
 def setup_tables():
     global engine
-
-    print 'Creating the PB database'
-    engine = create_engine('mysql://root@localhost:3306')
-    engine.execute("CREATE DATABASE pantherbot_test")
-    engine.execute("USE pantherbot_test")
-
-    # try:
-    #     engine.connect()
-    # except OperationalError:
-    #     print 'Creating the PB database'
-    #     engine = create_engine('mysql://root@localhost:3306')
-    #     engine.execute("CREATE DATABASE pantherbot_test")
-    #     engine.execute("USE pantherbot_test")
     try:
-        print 'Creating tables'
-        engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive BOOL, is_active BOOL, PRIMARY KEY (slack_id))")
-        print '1'
-        engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin BOOL, PRIMARY KEY (slack_id))")
-        print '2'
-        engine.execute("create table channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
-        print '3'
-        engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom BOOL, PRIMARY KEY (name))")
-        print '4'
-        engine.execute("create table channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
+        engine.connect()
     except Exception:
-            print(sys.exc_info()[1])
+        print 'Creating the PB database'
+        engine = create_engine('mysql://root@localhost:3306')
+        engine.execute("CREATE DATABASE pantherbot_test")
+        engine.execute("USE pantherbot_test")
+    
+    engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive BOOL, is_active BOOL, PRIMARY KEY (slack_id))")
+    engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin BOOL, PRIMARY KEY (slack_id))")
+    engine.execute("CREATE TABLE channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
+    engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom BOOL, PRIMARY KEY (name))")
+    engine.execute("CREATE TABLE channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
+    
 
 setup_tables()
 
