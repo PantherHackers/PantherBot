@@ -240,6 +240,10 @@ def log(response):
         print 'we got to the end'
         return
 
+    if response["type"] == "channel_archive":
+        id = response["channel"]
+        engine.execute("UPDATE channels is_active = 0 WHERE slack_id = '"+id+"'")
+
 def setup_tables():
     global engine
     try:
