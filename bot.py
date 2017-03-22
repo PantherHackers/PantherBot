@@ -136,8 +136,6 @@ def on_message(ws, message):
 def log(response):
     global engine
     def add_user(r):
-            print 'add_user called'
-
             if r["user"] is dict:
                 print 'using dict'
                 first_name = r["user"]["profile"]["first_name"]
@@ -150,29 +148,18 @@ def log(response):
                     is_admin = 0
                 try:
                     #TODO: santize code to prevent SQL Injection
-                    print 'attemtping to insert'
                     engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(slack_id)+"', '"+first_name+"', '"+last_name+"', "+str(is_admin)+")")
                 except Exception:
-                    print 'failing with dict'
                     print(sys.exc_info()[1])
             else:
-                print 'going non dict'
                 try:  
                     slack_id = r["user"]
                 except Exception:
-                    print 'failing'
                     print(sys.exc_info()[1])
-
-                # try:
-                    #TODO: santize code to prevent SQL Injection
+                #TODO: santize code to prevent SQL Injection
                 print 'attemtping to insert with min values'
                 engine.execute("INSERT IGNORE INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(slack_id)+"', null, null, null)")
-                # except Exception:
-                #     print 'failing'
-                #     print(sys.exc_info()[1])
-            
-            print 'ending'
-
+                
     if response["type"] == "message":
         print 'message recieved'
         channel_id = response["channel"]
@@ -232,12 +219,8 @@ def log(response):
         print 'channel created'
         id = response["channel"]["id"]
         name = response["channel"]["name"]
-        try:
-            engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+id+"', '"+name+"', False, True)")
-        except Exception:
-            print(sys.exc_info()[1])
-
-        print 'we got to the end'
+        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+id+"', '"+name+"', False, True)")
+       
         return
 
     if response["type"] == "channel_archive":
