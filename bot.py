@@ -155,12 +155,11 @@ def log(response):
                 
     if response["type"] == "message":
         print 'message recieved'
-        channel_id = response["channel"]
         user_id = response["user"]
         add_user(response)
-        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel_id+"', null, False, True)")
-        engine.execute("INSERT IGNORE INTO channelActivity (from_user_id, to_channel_id, comment_count) VALUES ('"+user_id+"', '"+channel_id+"', 0)")
-        engine.execute("UPDATE channelActivity SET comment_count = comment_count+1 WHERE from_user_id = '"+user_id+"' and to_channel_id = '"+channel_id+"'")
+        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, False, True)", response["channel"])
+        engine.execute("INSERT IGNORE INTO channelActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
+        engine.execute("UPDATE channelActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
         return
         
     if response["type"] == "team_join":
