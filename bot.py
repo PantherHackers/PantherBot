@@ -146,14 +146,12 @@ def log(response):
                     is_admin = 1
                 else:
                     is_admin = 0
-                    #TODO: santize code to prevent SQL Injection
-                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(slack_id)+"', '"+first_name+"', '"+last_name+"', "+str(is_admin)+")")
+                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", slack_id, first_name, last_name)
             else:
                 slack_id = r["user"]
                 
                 #TODO: santize code to prevent SQL Injection
-                print 'attemtping to insert with min values'
-                engine.execute("INSERT IGNORE INTO users (slack_id, first_name, last_name, is_admin) VALUES ('"+str(slack_id)+"', null, null, null)")
+                engine.execute("INSERT IGNORE INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, null, null, null)", slack_id)
                 
     if response["type"] == "message":
         print 'message recieved'
