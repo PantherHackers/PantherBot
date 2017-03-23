@@ -137,21 +137,15 @@ def log(response):
     global engine
     def add_user(r):
             if r["user"] is dict:
-                print 'using dict'
-                first_name = r["user"]["profile"]["first_name"]
-                last_name = r["user"]["profile"]["last_name"]
                 slack_id = r["user"]["id"]
                 is_admin = r["user"]["is_admin"]
                 if is_admin:
                     is_admin = 1
                 else:
                     is_admin = 0
-                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", slack_id, first_name, last_name)
+                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
             else:
-                slack_id = r["user"]
-                
-                #TODO: santize code to prevent SQL Injection
-                engine.execute("INSERT IGNORE INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, null, null, null)", slack_id)
+                engine.execute("INSERT IGNORE INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, null, null, null)", r["user"])
                 
     if response["type"] == "message":
         print 'message recieved'
@@ -169,17 +163,14 @@ def log(response):
     if response["type"] == "reaction_added":
         print 'reaction added'
         if response["item"]["type"] == "message":
-            from_user = response["user"]
-            to_user = response["item_user"]
-            channel = response["item"]["channel"]
             reaction = response["reaction"]
             if len(reaction) > 60:
                 reaction = reaction[:60]
             add_user(response)
-            engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+channel+"', null, False, True)")
-            engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES ('"+reaction+"', 0)")
-            engine.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES('"+from_user+"', '"+to_user+"', '"+channel+"', '"+reaction+"', 0)")
-            engine.execute("UPDATE emojiActivity SET given_count = given_count+1 WHERE from_user_id = '"+from_user+"' and to_user_id = '"+to_user+"' and in_channel_id = '"+channel+"' and emoji_name = '"+reaction+"'")
+            engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, 0, 1)", response["item"]["channel"])
+            engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES (%s, 0)", reaction)
+            engine.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES(%s, %s, %s, %s, 0)", response["user"], response["item_user"], response["item"]["channel"], reaction)
+            engine.execute("UPDATE emojiActivity SET given_count = given_count+1 WHERE from_user_id = %s and to_user_id = %s and in_channel_id = %s and emoji_name = %s", response["user"], response["item_user"], response["item"]["channel"], reaction)
         return
 
     if response["type"] == "reaction_removed":
