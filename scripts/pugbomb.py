@@ -8,7 +8,7 @@ def pugbomb(response, args):
     try:
         num = round(int(args[0]))
     except:
-        return "`Please enter a number`"
+        return "`Please enter a number next time`"
 
     if num > 10:
         num = 10
