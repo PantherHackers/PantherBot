@@ -190,8 +190,7 @@ def log(response):
         return
 
     if response["type"] == "channel_archive":
-        id = response["channel"]
-        engine.execute("UPDATE channels SET is_active = 0 WHERE slack_id = '"+id+"'")
+        engine.execute("UPDATE channels SET is_active = 0 WHERE slack_id = %s", response["channel"])
         return
 
     if response["type"] == "channel_unarchive":
