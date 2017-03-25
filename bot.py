@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 This module runs basically everything.
@@ -67,7 +68,7 @@ LOG = False
 global LOGC
 LOGC = []
 global pbCooldown
-pbCooldown = 100
+pbCooldown = 1
 polling_list = dict()
 
 
