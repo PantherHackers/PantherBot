@@ -5,9 +5,15 @@ import praw
 
 def pugbomb(response, args):
     #gets the number
-    num = int(args[0])
+    try:
+        num = round(int(args[0]))
+    except:
+        return ["Please enter a number next time."]
+
     if num > 10:
         num = 10
+    elif num <= 0:
+        return ["Can only show one or more pugs"]
 
     reddit = praw.Reddit(client_id='aGpQJujCarDHWA',
                      	client_secret='fkA9lp0NDx23B_qdFezTeGyGKu8',
