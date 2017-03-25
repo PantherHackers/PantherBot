@@ -186,10 +186,7 @@ def log(response):
         return
 
     if response["type"] == "channel_created":
-        print 'channel created'
-        id = response["channel"]["id"]
-        name = response["channel"]["name"]
-        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES ('"+id+"', '"+name+"', False, True)")
+        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, %s, 0, 1)", response["channel"]["id"], response["channel"]["name"])
         return
 
     if response["type"] == "channel_archive":
