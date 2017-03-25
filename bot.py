@@ -175,9 +175,6 @@ def log(response):
 
     if response["type"] == "reaction_removed":
         if response["item"]["type"] == "message":
-            from_user = response["user"]
-            to_user = response["item_user"]
-            channel = response["item"]["channel"]
             reaction = response["reaction"]
             if len(reaction) > 60:
                 reaction = reaction[:60]
