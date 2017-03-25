@@ -68,7 +68,7 @@ LOG = False
 global LOGC
 LOGC = []
 global pbCooldown
-pbCooldown = 1
+pbCooldown = 100
 polling_list = dict()
 
 
