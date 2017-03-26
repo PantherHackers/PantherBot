@@ -41,11 +41,12 @@ import scripts
 from scripts import commands
 import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  # noqa: 401
 import re
+import requests
+import datetime
 
 #SQLAlchemy imports
 from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String
 
-import requests
 
 # Version Number: release.version_num.revision_num
 VERSION = "1.1.9"
@@ -152,6 +153,12 @@ def log(response):
         engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, False, True)", response["channel"])
         engine.execute("INSERT IGNORE INTO commentActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
         engine.execute("UPDATE commentActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
+        
+        now = datetime.datetime.now()
+        wk = now.strftime("%a")
+        if len(wk) > 1:
+            wk = wk[:2]
+        engine.execute("INSERT INTO channelActivty (channel_id, hour, week_day, day_of_month, month, year) VALUES (%s, %d, %s %d, %d, %d)", response["channel"], now.hour, wk, now.day, now.month, now.year)
         return
         
     if response["type"] == "team_join":
