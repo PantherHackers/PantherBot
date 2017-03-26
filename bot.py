@@ -156,8 +156,7 @@ def log(response):
         
         try:
             now = datetime.datetime.now()
-            wk = now.strftime("%a")[:2]
-            engine.execute("INSERT INTO channelActivity (channel_id, hour, week_day, day_of_month, month, year) VALUES (%s, %s, %s, %s, %s, %s)", response["channel"], now.hour, wk, now.day, now.month, now.year)
+            engine.execute("INSERT INTO channelActivity (channel_id, hour, week_day, day_of_month, month, year) VALUES (%s, %s, %s, %s, %s, %s)", response["channel"], now.hour, now.strftime("%a")[:2], now.day, now.month, now.year)
         except Exception as e:
             print e
 
