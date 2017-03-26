@@ -137,7 +137,6 @@ def log(response):
     global engine
     def add_user(r):
             if r["user"] is dict:
-                slack_id = r["user"]["id"]
                 is_admin = r["user"]["is_admin"]
                 if is_admin:
                     is_admin = 1
@@ -148,12 +147,11 @@ def log(response):
                 engine.execute("INSERT IGNORE INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, null, null, null)", r["user"])
                 
     if response["type"] == "message":
-        print 'message recieved'
         user_id = response["user"]
         add_user(response)
         engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, False, True)", response["channel"])
-        engine.execute("INSERT IGNORE INTO channelActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
-        engine.execute("UPDATE channelActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
+        engine.execute("INSERT IGNORE INTO commentActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
+        engine.execute("UPDATE commentActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
         return
         
     if response["type"] == "team_join":
@@ -161,7 +159,6 @@ def log(response):
         return
     
     if response["type"] == "reaction_added":
-        print 'reaction added'
         if response["item"]["type"] == "message":
             reaction = response["reaction"]
             if len(reaction) > 60:
@@ -194,7 +191,6 @@ def log(response):
         return
 
     if response["type"] == "channel_unarchive":
-        id = response["channel"]
         engine.execute("UPDATE channels SET is_active = 1 WHERE slack_id = %s", response["channel"])
         return
 
@@ -210,8 +206,9 @@ def setup_tables():
         engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive TINYINT, is_active TINYINT, PRIMARY KEY (slack_id))")
         engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin TINYINT, PRIMARY KEY (slack_id))")
         engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom TINYINT, PRIMARY KEY (name))")
-        engine.execute("CREATE TABLE channelActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
+        engine.execute("CREATE TABLE commentActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
         engine.execute("CREATE TABLE emojiActivity(from_user_id VARCHAR(9), to_user_id VARCHAR(9), in_channel_id VARCHAR(9), emoji_name VARCHAR(60), given_count INTEGER, PRIMARY KEY (from_user_id, to_user_id, in_channel_id, emoji_name),  FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_user_id) REFERENCES users (slack_id), FOREIGN KEY (in_channel_id) REFERENCES channels (slack_id))")    
+        engine.execute("CREATE TABLE channelActivity(channel_id VARCHAR(9), hour TINYINT, week_day VARCHAR(2), day_of_month TINYINT, month TINYINT, year SMALLINT, PRIMARY KEY (channel_id), FOREIGN KEY (channel_id) REFERENCES channels (slack_id)")
 
 setup_tables()
 
