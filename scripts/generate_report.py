@@ -1,7 +1,13 @@
 
-#gr time random 2/1 3/1
+#gr time random 2/1/18 3/1/18
+import datetime
+from collections import Counter
+
 def generate_report(response, args):
     if args[0] == 'time':
+        channel = args[1]
+        range = args[2:3]
+        time(channel, range)
 
     if args[0] == 'top_users':
 
@@ -9,10 +15,55 @@ def generate_report(response, args):
 
     if args[0] == 'channel':
 
-def time(channel, x):
-    
-    engine.execute("SELECT channel_id, hour FROM channelActivity WHERE ", channel)
+def time(channel, range):
+    try:
+        v = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
+    except ValueError:
+        return ["Please input time in the syntax of mm/dd/yy"]
+    q = engine.execute("SELECT hour FROM channelActivity WHERE channel = %s and day_of_month = %s and month = %s and year = %s", channel, v.day, v.month, v.year).fetchall()
+    cnt = Counter()
+    for v in q:
+        cnt[v[0]] + = 1
 
+    i = 1
+    hour = []
+    count = []
+    while i <= 24:
+        hour.append(i)
+        count.append(cnt[i])
+        i += 1
+
+    # report = """ 
+
+    # +--------+--------+
+    # |__hour__|__count_|
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # |   {}   |   {}   |  
+    # +--------+--------+
+
+    # """
 
 
 
