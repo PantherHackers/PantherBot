@@ -1,6 +1,7 @@
 
 #gr time random 2/1/18 3/1/18
 import datetime
+import pandas
 from collections import Counter
 
 def generate_report(response, args):
@@ -18,15 +19,20 @@ def generate_report(response, args):
     if args[0] == 'channel':
         pass
 
-def time(channel, range):
+def time(channel='slack-wide', range):
     try:
         v = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
     except ValueError:
         return ["Please input time in the syntax of mm/dd/yy"]
-    q = engine.execute("SELECT hour FROM channelActivity WHERE channel = %s and day_of_month = %s and month = %s and year = %s", channel, v.day, v.month, v.year).fetchall()
+
+    q = None
+    if channel == 'slack-wide':
+        q = engine.execute("SELECT hour FROM channelActivity WHERE day_of_month = %s and month = %s and year = %s", v.day, v.month, v.year).fetchall()
+    else:
+        q = engine.execute("SELECT hour FROM channelActivity WHERE channel = %s and day_of_month = %s and month = %s and year = %s", channel, v.day, v.month, v.year).fetchall()
     cnt = Counter()
     for v in q:
-        cnt[v[0]] + = 1
+        cnt[v[0]] += 1
 
     i = 1
     hour = []
@@ -35,6 +41,8 @@ def time(channel, range):
         hour.append(i)
         count.append(cnt[i])
         i += 1
+
+    df = pandas.DataFrame({'Count':count}, index=hour)
 
     # report = """ 
 
