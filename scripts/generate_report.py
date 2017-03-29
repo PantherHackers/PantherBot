@@ -10,10 +10,13 @@ def generate_report(response, args):
         time(channel, range)
 
     if args[0] == 'top_users':
+        pass
 
     if args[0] == 'emoji':
+        pass
 
     if args[0] == 'channel':
+        pass
 
 def time(channel, range):
     try:
