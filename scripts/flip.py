@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import upsidedown
-
+import upsidedown, sys
+from response import Response
 
 # flips text using upsidedown module and has a donger for emohasis
 def flip(response, args=[]):
+    response_obj = Response(sys.modules[__name__])
     toFlip = ''
     donger = '(╯°□°)╯︵'
     if len(args) >= 0:
@@ -17,7 +18,17 @@ def flip(response, args=[]):
     try:
         donger = unicode(donger, "utf-8")
         flippedmsg = upsidedown.transform(toFlip)
-        return [donger + flippedmsg]
-    except:
-        print "PantherBot:Log:Flip:Error in flip"
-        return ["Sorry, I can't seem to flip right now, or you gave an invalid argument"]  # noqa: 501
+        response_obj.messages_to_send.append(donger + flippedmsg)
+    except Exception as e:
+        print "PantherBot:Log:Flip:Error in flip: " + str(e)
+        response_obj.status_code = -1
+    return response_obj
+
+
+def error_cleanup(error_code):
+    response_obj = Response(sys.modules[__name__])
+    if error_code is -1:
+        response_obj.messages_to_send.append("Sorry, there seems to have been an error while flipping. Take this donger instead: (╯°□°)╯︵┻━┻")
+    else:
+        response_obj.messages_to_send.append("An unknown error occured. Error code: " + error_code)
+    return response_obj
