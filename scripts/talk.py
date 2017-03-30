@@ -3,14 +3,18 @@
 
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
+import sys
+from response import Response
 
 def talk(response, args=[]):
+    response_obj = Response(sys.modules[__name__])
     cb = ChatBot('PantherBot')
     cb.set_trainer(ChatterBotCorpusTrainer)
     cb.train(
     "chatterbot.corpus.english"
     )
     try:
-        return [cb.get_response(" ".join(args)).text]
+        response_obj.messages_to_send.append(cb.get_response(" ".join(args)).text)
     except:
-        return ["I'm feeling sick... come back later"]
+        response_obj.messages_to_send.append("I'm feeling sick... come back later")
+    return response_obj

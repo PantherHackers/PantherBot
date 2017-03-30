@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import os
 
+import sys
+from response import Response
 
 # enables logging of messages on a channel/channels, storing the logs sorted by channel by day in the format "channelID Y-M-D"  # noqa: 501
 def log(response, args, sc, rmsg):
