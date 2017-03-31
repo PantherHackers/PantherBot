@@ -2,6 +2,6 @@
 rm -rf ../PantherBot-old
 cp -R ../PantherBot ../PantherBot-old
 git pull
-pkill -f bot.py
+pkill -f start.py
 ./setup.sh
 ./start.sh
