@@ -302,7 +302,175 @@ class Bot:
                 else:
                     self.rmsg(message_response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
 
-        return False
+def rreaction(response, emoji):
+    sc.api_call(
+        "reactions.add",
+        name=emoji,
+        channel=response["channel"],
+        timestamp=response["ts"]
+    )
+    print "PantherBot:LOG:Reaction posted"
+
+
+def channel_to_id(channel_names):
+    pub_channels = sc.api_call(
+        "channels.list",
+        exclude_archived=1
+    )
+    pri_channels = sc.api_call(
+        "groups.list",
+        exclude_archived=1
+    )
+    li = []
+    for channel in pub_channels["channels"]:
+        for num in range(0, len(channel_names)):
+            if channel["name"].lower() == channel_names[num].lower():
+                li.append(channel["id"])
+    # Same as above
+    for channel in pri_channels["groups"]:
+        for num in range(0, len(channel_names)):
+            if channel["name"].lower() == channel_names[num].lower():
+                li.append(channel["id"])
+    return li
+
+
+def check_log():
+    global LOG
+    global LOGC
+    filename = "config/log.txt"
+    script_dir = os.path.dirname(__file__)
+    fullDir = os.path.join(script_dir, filename)
+    if os.path.isfile(fullDir) == False:  # noqa
+        target = open(fullDir, "w+")
+        target.write(u'False')
+        target.close()
+    else:
+        target = open(fullDir, "r")
+    if target.readline().strip('\n') == "True":
+        LOG = True
+    else:
+        LOG = False
+    LOGC = [line.rstrip('\n') for line in target]
+    target.close()
+
+
+# necessary shenanigans
+if __name__ == "__main__":
+    print "PantherBot:LOG:Beginning Execution... Setting up"
+
+    # Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)  # noqa: 501
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
+    if sys.stderr.encoding != 'utf-8':
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
+
+    # load config files
+    ADMIN = os.environ.get('ADMIN_LIST')
+    if ADMIN is None:
+        print "PantherBot:LOG:Loading config files"
+        filename = "config/admin.txt"
+        script_dir = os.path.dirname(__file__)
+        fullDir = os.path.join(script_dir, filename)
+        if not os.path.isfile(fullDir):
+            target = io.open(fullDir, "w+", encoding='utf-8')
+            target.close()
+        ADMIN = [line.rstrip('\n') for line in open(fullDir)]
+        
+    filename = "config/bot.txt"
+    script_dir = os.path.dirname(__file__)
+    fullDir = os.path.join(script_dir, filename)
+    if not os.path.isfile(fullDir):
+        target = open(fullDir, "w+")
+        target.write('PantherBot\n')
+        target.write('http://i.imgur.com/QKaLCX7.png\n')
+        target.close()
+    target = io.open(fullDir, "r")
+    BOT_NAME = target.readline().rstrip('\n')
+    BOT_ICON_URL = target.readline().rstrip('\n')
+    target.close()
+
+    filename = "config/settings.txt"
+    script_dir = os.path.dirname(__file__)
+    fullDir = os.path.join(script_dir, filename)
+    if not os.path.isfile(fullDir):
+        target = open(fullDir, "w+")
+        target.write('True\n')
+        target.write('False\n')
+        target.write('True\n')
+        target.write('google-secret.json\n')
+        target.write('True\n')
+        target.write('Welcome to the team! You can get more help with Slack here: https://get.slack.help/\n')  # noqa: 501
+        target.write('talk-to-pantherbot')
+        target.close()
+    target = io.open(fullDir, "r")
+    if target.readline().rstrip('\n') == "True":
+        SLACK = True
+    if target.readline().rstrip('\n') == "True":
+        GOOGLECAL = True
+    if target.readline().rstrip('\n') == "True":
+        LOGGER = True
+    GOOGLECALSECRET = target.readline().rstrip('\n')
+    if target.readline().rstrip('\n') == "True":
+        NEWUSERGREETING = True
+    GREETING = target.readline().rstrip('\n')
+    TTPB = target.readline().rstrip('\n')
+    target.close()
+
+    # initialize basic logging to see errors more easily
+    if LOGGER:
+        logger = logging.getLogger('root')
+        FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
+        logging.basicConfig(format=FORMAT)
+        logger.setLevel(logging.DEBUG)
+
+    # Toggleable, if you're not testing the Google Calendar API implementation or using this in a live environment that uses it, saves loading time and memory space.  # noqa: 501
+    if GOOGLECAL:
+        # Google API stuff
+        # SOOOOO... Google doesnt like us using a newer version of oauth2, might have to downgrade when we put this on the Pi officially  # noqa: 501
+        print "PantherBot:LOG:Starting Google API Authentication..."
+        scopes = ['https://www.googleapis.com/auth/calendar']
+
+        secret_location = os.path.dirname(__file__)
+        secret_fullDir = os.path.join(secret_location, 'secrets')
+        secret_fullDir = os.path.join(secret_fullDir, GOOGLECALSECRET)
+
+        print "PantherBot:LOG:Searching for Google Credentials"
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(
+            secret_fullDir, scopes=scopes)
+
+        print "PantherBot:LOG:Authenticating..."
+        google_http_auth = credentials.authorize(Http())
+
+        calendar_obj = build('calendar', 'v3', http=google_http_auth)
+        print "PantherBot:LOG:Authentication Successful. Should consider enabling debug to view OAuth message. Starting PantherBot"  # noqa: 501
+        # print calendar.calendarList().list().execute()
+    else:
+        print "PantherBot:LOG:Google Calendar API not enabled, edit the `GOOGLECAL` variable to enable it. See Google Calendar Python API documentation about Google API Service Accounts on how to authenticate. Store your secret in the /secrets/ folder and edit the `GOOGLECALSECRET` variable with the file name"  # noqa: 501
+
+    # If for some reason you need to debug without connecting to the Slack RTM API... this is for you.  # noqa: 501
+    if SLACK:
+        while True:
+            try:
+                t = os.environ.get('SLACK_SECRET')
+                if t is None:
+                    # Get Token from secrets folder
+                    try:
+                        filename = "secrets/slack_secret.txt"
+                        script_dir = os.path.dirname(__file__)
+                        fullDir = os.path.join(script_dir, filename)
+                        target = io.open(fullDir, "r")
+                        t = target.readline().rstrip("\n")
+                    except:
+                        print "PantherBot:LOG:Cannot find Slack token"
+                # initiates the SlackClient connection and Cleverbot API
+                sc = SlackClient(t)
+
+                # initiates connection to the server based on the token
+                print "PantherBot:LOG:Starting RTM connection"
+                bot_conn = sc.api_call(
+                    "rtm.start",
+                    token = t   # noqa:
+                )
 
     # Other Messages are messages that don't follow standard conventions (such as "Hey PantherBot!")
     # Returns True if a message_response or trigger was used in this method
