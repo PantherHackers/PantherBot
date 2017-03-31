@@ -371,15 +371,17 @@ if __name__ == "__main__":
         sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
 
     # load config files
-    print "PantherBot:LOG:Loading config files"
-    filename = "config/admin.txt"
-    script_dir = os.path.dirname(__file__)
-    fullDir = os.path.join(script_dir, filename)
-    if not os.path.isfile(fullDir):
-        target = io.open(fullDir, "w+", encoding='utf-8')
-        target.close()
-    ADMIN = [line.rstrip('\n') for line in open(fullDir)]
-
+    ADMIN = os.environ.get('ADMIN_LIST')
+    if ADMIN is None:
+        print "PantherBot:LOG:Loading config files"
+        filename = "config/admin.txt"
+        script_dir = os.path.dirname(__file__)
+        fullDir = os.path.join(script_dir, filename)
+        if not os.path.isfile(fullDir):
+            target = io.open(fullDir, "w+", encoding='utf-8')
+            target.close()
+        ADMIN = [line.rstrip('\n') for line in open(fullDir)]
+        
     filename = "config/bot.txt"
     script_dir = os.path.dirname(__file__)
     fullDir = os.path.join(script_dir, filename)
@@ -455,16 +457,17 @@ if __name__ == "__main__":
     if SLACK:
         while True:
             try:
-                t = ""
-                # Get Token from secrets folder
-                try:
-                    filename = "secrets/slack_secret.txt"
-                    script_dir = os.path.dirname(__file__)
-                    fullDir = os.path.join(script_dir, filename)
-                    target = io.open(fullDir, "r")
-                    t = target.readline().rstrip("\n")
-                except:
-                    print "PantherBot:LOG:Cannot find Slack token"
+                t = os.environ.get('SLACK_SECRET')
+                if t is None:
+                    # Get Token from secrets folder
+                    try:
+                        filename = "secrets/slack_secret.txt"
+                        script_dir = os.path.dirname(__file__)
+                        fullDir = os.path.join(script_dir, filename)
+                        target = io.open(fullDir, "r")
+                        t = target.readline().rstrip("\n")
+                    except:
+                        print "PantherBot:LOG:Cannot find Slack token"
                 # initiates the SlackClient connection and Cleverbot API
                 sc = SlackClient(t)
 
