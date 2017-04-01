@@ -139,28 +139,37 @@ def on_message(ws, message):
 def log(response):
     global engine
     def add_user(r):
-            if type(r["user"]) is not dict:
+        try:
+            q = engine.execute("SELECT last_name FROM users WHERE slack_id=%s", r["user"])
+
+            if q.fetchall() == []:
                 r = sc.api_call(
                     "users.info",
                     user=r["user"]
                     )
 
-            is_admin = r["user"]["is_admin"]
-            if is_admin:
-                is_admin = 1
-            else:
-                is_admin = 0
-            engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+                is_admin = r["user"]["is_admin"]
+                if is_admin:
+                    is_admin = 1
+                else:
+                    is_admin = 0
+                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+        except Exception as e:
+            print e
 
     def add_channel(r):
-        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, 0, 1)", r["item"]["channel"])
-        q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
-        if q.fetchall() == []:
-            r = sc.api_call(
-                    "channels.info",
-                    channel=r["channel"]
-                )
-            engine.execute("UPDATE channels SET name=%s WHERE slack_id=%s", r["channel"]["name"], r["channel"]["id"])
+        try:
+            print 'add_channel'
+            q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
+            if q.fetchall() == []:
+                print 'callin'
+                r = sc.api_call(
+                        "channels.info",
+                        channel=r["channel"]
+                    )
+                engine.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, %s, 0, 1)", r["channel"]["id"], r["channel"]["name"])
+        except Exception as e:
+            print 'ERROR' + e
 
     if response["type"] == "message":
         user_id = response["user"]
@@ -223,6 +232,7 @@ def log(response):
         return
 
     if response["type"] == "channel_unarchive":
+        add_channel(response)
         engine.execute("UPDATE channels SET is_active = 1 WHERE slack_id = %s", response["channel"])
         return
 
