@@ -125,6 +125,8 @@ def on_message(ws, message):
         if admin_message(response):
             return
 
+
+    #TODO: Purge all this shit
     elif "team_join" == response["type"]:
         if NEWUSERGREETING:
             new_user_message(response)
@@ -137,16 +139,19 @@ def on_message(ws, message):
 def log(response):
     global engine
     def add_user(r):
-            if r["user"] is dict:
-                is_admin = r["user"]["is_admin"]
-                if is_admin:
-                    is_admin = 1
-                else:
-                    is_admin = 0
-                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+            if type(r["user"]) is not dict:
+                r = sc.api_call(
+                    "users.info"
+                    user=r["user"]
+                )
+
+            is_admin = r["user"]["is_admin"]
+            if is_admin:
+                is_admin = 1
             else:
-                engine.execute("INSERT IGNORE INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, null, null, null)", r["user"])
-                
+                is_admin = 0
+            engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+
     if response["type"] == "message":
         user_id = response["user"]
         add_user(response)
@@ -164,6 +169,14 @@ def log(response):
         
     if response["type"] == "team_join":
         add_user(response)
+        print "PantherBot:LOG:Member joined team"
+        sc.api_call(
+            "chat.postMessage",
+            channel=response["user"]["id"],
+            text=GREETING,
+            username=BOT_NAME,
+            icon_url=BOT_ICON_URL
+        )
         return
     
     if response["type"] == "reaction_added":
@@ -351,18 +364,6 @@ def riyans_denial(response):
             rmsg(response, ["No."])
             return True
     return False
-
-
-def new_user_message(response):
-    print "PantherBot:LOG:Member joined team"
-    sc.api_call(
-        "chat.postMessage",
-        channel=response["user"]["id"],
-        text=GREETING,
-        username=BOT_NAME,
-        icon_url=BOT_ICON_URL
-    )
-
 
 def react_announcement(response):
     if GENERAL != "" and response["channel"] == GENERAL:
