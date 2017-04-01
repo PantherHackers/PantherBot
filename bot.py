@@ -46,50 +46,6 @@ class Bot:
         self.pb_cooldown = True
         self.connect_to_slack(token, is_websocket)
 
-    def on_message(self, ws, message):
-        message_thread = threading.Thread(target=self.on_message_thread, args=(message,))
-        self.THREADS.append(message_thread)
-        message_thread.start()
-        return
-
-    def on_message_thread(self, message):
-        s = message.decode('utf-8')
-        message_response = json.loads(unicode(s))
-        print "PantherBot:LOG:message:" + message_response["type"]
-        
-        if "message" == message_response["type"]:
-            if "subtype" in message_response:
-                if message_response["subtype"] == "bot_message":
-                    #polling logic
-                    if "POLL_BEGIN" in message_response["text"]:
-                        self.POLLING_LIST[message_response["channel"]][0] = message_response["ts"]
-                        temp_options = self.POLLING_LIST[message_response["channel"]][1]
-                        for key in temp_options:
-                            rreaction(message_response, temp_options[key].strip(":"))
-                    return
-
-            # Announcement reactions
-            self.react_announcement(message_response)
-
-            # General commands
-            # if riyansDenial(message_response):
-            #     return
-            if self.other_message(message_response):
-                return
-            if self.command_message(message_response):
-                return
-            if self.admin_message(message_response):
-                return
-
-    def on_error(self, ws, error):
-        return
-
-    def on_close(self, ws):
-        return
-
-    def on_open(self, ws):
-        self.smsg("pantherbot-dev", "Bot successfully started")
-
     def connect_to_slack(self, token, is_websocket):
         self.SC = SlackClient(token)
 
@@ -168,13 +124,57 @@ class Bot:
                     li.append(channel["id"])
         return li
 
-    # message_response Message
-    # Sends a message to the same channel that message_response originates from
-    def rmsg(self, message_response, l):
+    def on_message(self, ws, message):
+        message_thread = threading.Thread(target=self.on_message_thread, args=(message,))
+        self.THREADS.append(message_thread)
+        message_thread.start()
+        return
+
+    def on_message_thread(self, message):
+        s = message.decode('utf-8')
+        message_json = json.loads(unicode(s))
+        print "PantherBot:LOG:message:" + message_json["type"]
+        
+        if "message" == message_json["type"]:
+            if "subtype" in message_json:
+                if message_json["subtype"] == "bot_message":
+                    #polling logic
+                    if "POLL_BEGIN" in message_json["text"]:
+                        self.POLLING_LIST[message_json["channel"]][0] = message_json["ts"]
+                        temp_options = self.POLLING_LIST[message_json["channel"]][1]
+                        for key in temp_options:
+                            rreaction(message_json, temp_options[key].strip(":"))
+                    return
+
+            # Announcement reactions
+            self.react_announcement(message_json)
+
+            # General commands
+            # if riyansDenial(message_json):
+            #     return
+            if self.other_message(message_json):
+                return
+            if self.command_message(message_json):
+                return
+            if self.admin_message(message_json):
+                return
+
+    def on_error(self, ws, error):
+        return
+
+    def on_close(self, ws):
+        return
+
+    def on_open(self, ws):
+        self.smsg("pantherbot-dev", "Bot successfully started")
+
+    # message_json Message
+    # Sends a message to the same channel that message_json originates from
+    def rmsg(self, message_json, l):
         for text in l:
             self.SC.api_call(
                 "chat.postMessage",
-                channel=message_response["channel"],
+                channel=message_json["channel"],
                 text=text,
                 username=self.BOT_NAME,
                 icon_url=self.BOT_ICON_URL
@@ -198,48 +198,40 @@ class Bot:
         print "PantherBot:LOG:Message sent"
 
     # Command Messages are messages that begin with the `!` prefix
-    # Returns True if a message_response or trigger was used in this method
-    def command_message(self, message_response):
+    # Returns True if a message_json or trigger was used in this method
+    def command_message(self, message_json):
         # Checks if message starts with an exclamation point, and does the respective task 
-        if message_response["text"][:1] == "!":
+        if message_json["text"][:1] == "!":
             # Put all ! command parameters into an array
-            args = message_response["text"].split()
+            args = message_json["text"].split()
             com_text = args[0][1:].lower()
             args.pop(0)  # gets rid of the command
 
             # Checks if command is an Admin command
             if com_text in self.ADMIN_COMMANDS:
-                self.rmsg(message_response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"]) 
+                self.rmsg(message_json, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"]) 
                 return True
 
-            # # Special cases for some functions Needs to be addressed
-            # if com_text == "pugbomb":
-            #     if not self.pb_cooldown:
-            #         self.rmsg(message_response, ["Sorry, pugbomb is on cooldown"])
-            #         return True
-            #     else:
-            #         self.pb_cooldown = False
-
             if com_text == "version":
-                self.rmsg(message_response, [self.VERSION])
+                self.rmsg(message_json, [self.VERSION])
                 return True
 
             if com_text == "talk":
                 ch = self.channels_to_ids([TTPB])
                 c = ch[0]
-                if message_response["channel"] != c:
-                    self.rmsg(message_response, ["Talk to me in #" + TTPB])
+                if message_json["channel"] != c:
+                    self.rmsg(message_json, ["Talk to me in #" + TTPB])
                     return True
 
             if com_text[0] == '!':
                 return True
 
-            # list that contains the message_response and args for all methods
+            # list that contains the message_json and args for all methods
             method_args = []
-            method_args.append(message_response)
+            method_args.append(message_json)
 
             if com_text == "poll":
-                method_args.append(polling_list[message_response["channel"]])
+                method_args.append(polling_list[message_json["channel"]])
                 method_args.append(sc)
 
             if len(args) > 0:
@@ -249,26 +241,26 @@ class Bot:
             called_function = getattr(commands[com_text], com_text)
             script_response = called_function(*method_args)
             if script_response.status_code is 0:
-                self.rmsg(message_response, script_response.messages_to_send)
+                self.rmsg(message_json, script_response.messages_to_send)
             else:
                 error_cleanup = getattr(script_response.module_called, "error_cleanup")
                 error_response = error_cleanup(script_response.status_code)
-                self.rmsg(message_response, error_response.messages_to_send)
+                self.rmsg(message_json, error_response.messages_to_send)
             return True
             # except:
             #     # If it fails, outputs that no command was found or syntax was broken.
-            #     self.rmsg(message_response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
+            #     self.rmsg(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
             #     return True
         return False
 
     # Admin Messages are messages that begin with the `$` prefix
-    # Returns True if a message_response or trigger was used in this method
-    def admin_message(self, message_response):
+    # Returns True if a message_json or trigger was used in this method
+    def admin_message(self, message_json):
         # Repeats above except for admin commands
-        if message_response["text"][:1] == "$":
+        if message_json["text"][:1] == "$":
             # Checks if message is longer than "$"
-            if len(message_response["text"]) > 1:
-                args = message_response["text"].split()
+            if len(message_json["text"]) > 1:
+                args = message_json["text"].split()
                 com_text = args[0][1:].lower()
                 args.pop(0)
                 # Checks if pattern differs from admin commands
@@ -276,14 +268,9 @@ class Bot:
                 if any(i.isdigit() for i in com_text) or ('$' in com_text):
                     return False
 
-                if message_response["user"] in self.ADMIN:
-                    # Special case for calendar requiring unique arguments
-                    if com_text == "calendar":
-                        if GOOGLECAL:
-                            self.rmsg(message_response, scripts.calendar.calendar(args, calendar_obj))
-                            return True
+                if message_json["user"] in self.ADMIN:
                     l = []
-                    l.append(message_response)
+                    l.append(message_json)
                     l.append(args)
                     l.append(self.SC)
                     l.append(self.rmsg)
@@ -292,15 +279,15 @@ class Bot:
                         f(*l)
                         return True
                     except:
-                        self.rmsg(message_response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
+                        self.rmsg(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
                         return True
 
                 # Checks if command is an admin command
                 elif com_text in self.ADMIN_COMMANDS:
-                    self.rmsg(message_response, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])
+                    self.rmsg(message_json, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])
                     return True
                 else:
-                    self.rmsg(message_response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
+                    self.rmsg(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
 
 def rreaction(response, emoji):
     sc.api_call(
@@ -473,61 +460,61 @@ if __name__ == "__main__":
                 )
 
     # Other Messages are messages that don't follow standard conventions (such as "Hey PantherBot!")
-    # Returns True if a message_response or trigger was used in this method
-    def other_message(self, message_response):
+    # Returns True if a message_json or trigger was used in this method
+    def other_message(self, message_json):
         # If not an ! or $, checks if it should respond to another message format, like a greeting 
         try:
-            if re.match(".*panther +hackers.*", str(message_response["text"].lower())):
-                self.rmsg(message_response, ["NO THIS IS PANTHERHACKERS"])
+            if re.match(".*panther +hackers.*", str(message_json["text"].lower())):
+                self.rmsg(message_json, ["NO THIS IS PANTHERHACKERS"])
                 return True
-            elif message_response["text"].lower() == "hey pantherbot":
+            elif message_json["text"].lower() == "hey pantherbot":
                 # returns user info that said hey
                 # TODO make this use USER_LIST
                 temp_user = self.SC.api_call(
                     "users.info",
-                    user = message_response["user"]
+                    user = message_json["user"]
                 )
                 print "PantherBot:LOG:Greeting:We did it reddit"
-                self.rmsg(message_response, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
+                self.rmsg(message_json, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
                 return True
-            elif message_response["text"].lower() == "pantherbot ping":
-                self.rmsg(message_response, ["PONG"])
+            elif message_json["text"].lower() == "pantherbot ping":
+                self.rmsg(message_json, ["PONG"])
                 return True
-            elif message_response["text"].lower() == ":rip: pantherbot" or message_response["text"].lower() == "rip pantherbot":
-                self.rmsg(message_response, [":rip:"])
+            elif message_json["text"].lower() == ":rip: pantherbot" or message_json["text"].lower() == "rip pantherbot":
+                self.rmsg(message_json, [":rip:"])
                 return True
-            elif re.match(".*panther +hackers.*", str(message_response["text"].lower())):
-                self.rmsg(message_response, ["NO THIS IS PANTHERHACKERS"])
+            elif re.match(".*panther +hackers.*", str(message_json["text"].lower())):
+                self.rmsg(message_json, ["NO THIS IS PANTHERHACKERS"])
                 return True
-            elif "subtype" in message_response:
-                if message_response["subtype"] == "channel_leave" or message_response["subtype"] == "group_leave": 
-                    self.rmsg(message_response, ["Press F to pay respects"])
+            elif "subtype" in message_json:
+                if message_json["subtype"] == "channel_leave" or message_json["subtype"] == "group_leave": 
+                    self.rmsg(message_json, ["Press F to pay respects"])
                     return True
             return False
         except:
             print "Error with checking in other_message: likely the message contained unicode characters"
 
     # Reacts to all messages posted in the GENERAL channel with a pre-defined list of emojis
-    def react_announcement(self, message_response):
-        if self.GENERAL_CHANNEL != "" and message_response["channel"] == self.GENERAL_CHANNEL:
+    def react_announcement(self, message_json):
+        if self.GENERAL_CHANNEL != "" and message_json["channel"] == self.GENERAL_CHANNEL:
             temp_list = list(self.EMOJI_LIST)
-            self.rreaction(message_response, "pantherbot")
+            self.rreaction(message_json, "pantherbot")
             for x in range(0, 3):
                 num = random.randrange(0, len(temp_list))
-                self.rreaction(message_response, temp_list.pop(num))
+                self.rreaction(message_json, temp_list.pop(num))
 
-    def rreaction(self, message_response, emoji):
+    def rreaction(self, message_json, emoji):
         self.SC.api_call(
             "reactions.add",
             name=emoji,
-            channel=message_response["channel"],
-            timestamp=message_response["ts"]
+            channel=message_json["channel"],
+            timestamp=message_json["ts"]
         )
         print "PantherBot:LOG:Reaction posted"
 
-    def riyans_denial(self, message_response):
-        if "U0LJJ7413" in message_response["user"]:
-            if message_response["text"][:1] in ["!", "$"] or message_response["text"].lower() in ["hey pantherbot", "pantherbot ping"]: 
-                self.rmsg(message_response, ["No."])
+    def riyans_denial(self, message_json):
+        if "U0LJJ7413" in message_json["user"]:
+            if message_json["text"][:1] in ["!", "$"] or message_json["text"].lower() in ["hey pantherbot", "pantherbot ping"]: 
+                self.rmsg(message_json, ["No."])
                 return True
         return False
