@@ -141,7 +141,7 @@ def log(response):
     def add_user(r):
             if type(r["user"]) is not dict:
                 r = sc.api_call(
-                    "users.info"
+                    "users.info",
                     user=r["user"]
                 )
 
