@@ -139,51 +139,36 @@ def on_message(ws, message):
 def log(response):
     global engine
     def add_user(r):
-        try:
-            q = engine.execute("SELECT last_name FROM users WHERE slack_id=%s", r["user"])
-
-            if q.fetchall() == []:
-                r = sc.api_call(
-                    "users.info",
-                    user=r["user"]
-                    )
-
-                is_admin = r["user"]["is_admin"]
-                if is_admin:
-                    is_admin = 1
-                else:
-                    is_admin = 0
-                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
-        except Exception as e:
-            print e
+        q = engine.execute("SELECT last_name FROM users WHERE slack_id=%s", r["user"])
+        if q.fetchall() == []:
+            r = sc.api_call(
+                "users.info",
+                user=r["user"]
+                )
+            is_admin = r["user"]["is_admin"]
+            if is_admin:
+                is_admin = 1
+            else:
+                is_admin = 0
+            engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
 
     def add_channel(r):
-        try:
-            print 'add_channel'
-            q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
-            if q.fetchall() == []:
-                print 'callin'
-                r = sc.api_call(
-                        "channels.info",
-                        channel=r["channel"]
-                    )
-                engine.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, %s, 0, 1)", r["channel"]["id"], r["channel"]["name"])
-        except Exception as e:
-            print 'ERROR' + e
+        q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
+        if q.fetchall() == []:
+            print 'callin'
+            r = sc.api_call(
+                    "channels.info",
+                    channel=r["channel"]
+                )
+            engine.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, %s, 0, 1)", r["channel"]["id"], r["channel"]["name"])
 
     if response["type"] == "message":
-        user_id = response["user"]
         add_user(response)
         add_channel(response)
         engine.execute("INSERT IGNORE INTO commentActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
         engine.execute("UPDATE commentActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
-        
-        try:
-            now = datetime.datetime.now()
-            engine.execute("INSERT INTO channelActivity (channel_id, hour, week_day, day_of_month, month, year) VALUES (%s, %s, %s, %s, %s, %s)", response["channel"], now.hour, now.strftime("%a")[:2], now.day, now.month, now.year)
-        except Exception as e:
-            print e
-
+        now = datetime.datetime.now()
+        engine.execute("INSERT INTO channelActivity (channel_id, hour, week_day, day_of_month, month, year) VALUES (%s, %s, %s, %s, %s, %s)", response["channel"], now.hour, now.strftime("%a")[:2], now.day, now.month, now.year)
         return
         
     if response["type"] == "team_join":
