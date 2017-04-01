@@ -4,6 +4,6 @@ class Response():
         # So... Python is incredibly dumb and smart at the same time, and will remember mutable objects during runtime
         # This is because Python only runs the def statement once, and only evaluates that once, and therefor could remember
         # messages_to_send out of thin air. 
-        self.status_code = 0 if status_code is None
-        self.messages_to_send = [] if messages_to_send is None
-        self.special_condition = False if special_condition is None
+        if status_code is None: self.status_code = 0
+        if messages_to_send is None: self.messages_to_send = [] 
+        if special_condition is None: self.special_condition = False
