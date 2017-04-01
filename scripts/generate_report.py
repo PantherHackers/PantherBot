@@ -10,13 +10,8 @@ def generate_report(response, args):
     if args[0] == 'time':
         if len(args)<4:
             return ["ERROR: Please use the following syntax `time random 2/1/18 5/1/18`"]
-        channel = args[1]
-        print channel
-        range = args[2::]
-        print range
-        return time(range, channel)
+        return time(args[2::], args[1])
 
-        "select hour from channelActivity where month >=1 and month < 5"
     if args[0] == 'top_users':
         pass
 
@@ -28,38 +23,31 @@ def generate_report(response, args):
 
 def time(range, channel='all'):
     try:
-        try:
-            print range
-            v = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
-        except ValueError:
-            return ["Please input time in the syntax of mm/dd/yy"]
-        q = None
-        print channel
-        if channel == 'all':
-            print 'we doin all'
-            q = engine.execute("SELECT hour FROM channelActivity WHERE day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", v[0].day, v[1].day, v[0].month, v[1].month, v[0].year, v[1].year).fetchall()
-        else:
-            print 'doing custom'
-            q = engine.execute("SELECT hour FROM channelActivity WHERE channel_id = (SELECT slack_id FROM channels WHERE name = %s) and day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", channel, v[0].day, v[1].day, v[0].month, v[1].month, v[0].year, v[1].year).fetchall()
+        v = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
+    except ValueError:
+        return ["Please input time in the syntax of mm/dd/yy"]
+    q = None
+    if channel == 'all':
+        q = engine.execute("SELECT hour FROM channelActivity WHERE day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", v[0].day, v[1].day, v[0].month, v[1].month, v[0].year, v[1].year).fetchall()
+    else:
+        q = engine.execute("SELECT hour FROM channelActivity WHERE channel_id = (SELECT slack_id FROM channels WHERE name = %s) and day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", channel, v[0].day, v[1].day, v[0].month, v[1].month, v[0].year, v[1].year).fetchall()
 
-        cnt = Counter()
-        print q
-        for v in q:
-            cnt[v[0]] += 1
+    cnt = Counter()
+    for v in q:
+        cnt[v[0]] += 1
 
-        i = 1
-        hour = []
-        count = []
-        while i <= 24:
-            hour.append(i)
-            count.append(cnt[i])
-            i += 1
+    i = 1
+    hour = []
+    count = []
+    while i <= 24:
+        hour.append(i)
+        count.append(cnt[i])
+        i += 1
 
-        df = pandas.DataFrame({'Count':count}, index=hour)
-        # return [str(df)]
-        print df
-    except Exception, e:
-        print e
+    df = pandas.DataFrame({'Count':count}, index=hour)
+    df.columns.name = 'Hour'
+    return [str(df)]
+    
 
 
     # report = """ 
