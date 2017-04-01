@@ -218,6 +218,7 @@ def log(response):
         return
 
     if response["type"] == "channel_archive":
+        add_channel(response)
         engine.execute("UPDATE channels SET is_active = 0 WHERE slack_id = %s", response["channel"])
         return
 
