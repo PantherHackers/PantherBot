@@ -47,6 +47,8 @@ def error_cleanup(error_code):
     response_obj.special_condition = True
     return response_obj
 
-def special_condition(bot):
+def set_cooldown(bot):
     bot.pb_cooldown = True
-    return
+
+def special_condition(bot):
+    set_cooldown(bot)
