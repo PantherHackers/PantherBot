@@ -127,12 +127,12 @@ def on_message(ws, message):
 
 
     #TODO: Purge all this shit
-    elif "team_join" == response["type"]:
-        if NEWUSERGREETING:
-            new_user_message(response)
-        USER_LIST = sc.api_call(  # noqa: 841
-            "users.list",
-        )
+    # elif "team_join" == response["type"]:
+    #     if NEWUSERGREETING:
+    #         new_user_message(response)
+    #     USER_LIST = sc.api_call(  # noqa: 841
+    #         "users.list",
+    #     )
 
     log(response)   
 
@@ -143,7 +143,7 @@ def log(response):
                 r = sc.api_call(
                     "users.info",
                     user=r["user"]
-                )
+                    )
 
             is_admin = r["user"]["is_admin"]
             if is_admin:
@@ -152,10 +152,20 @@ def log(response):
                 is_admin = 0
             engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
 
+    def add_channel(r):
+        q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
+        if q.fetchall() == []:
+            r = sc.api_call(
+                    "channels.info",
+                    channel=r["channel"]
+                )
+            engine.execute("UPDATE channels SET name=%s WHERE slack_id=%s", r["channel"]["name"], r["channel"]["id"])
+
     if response["type"] == "message":
         user_id = response["user"]
         add_user(response)
         engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, False, True)", response["channel"])
+        add_channel(response)
         engine.execute("INSERT IGNORE INTO commentActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
         engine.execute("UPDATE commentActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
         
