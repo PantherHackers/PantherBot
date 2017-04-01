@@ -153,6 +153,7 @@ def log(response):
             engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
 
     def add_channel(r):
+        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, 0, 1)", r["item"]["channel"])
         q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
         if q.fetchall() == []:
             r = sc.api_call(
@@ -164,7 +165,6 @@ def log(response):
     if response["type"] == "message":
         user_id = response["user"]
         add_user(response)
-        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, False, True)", response["channel"])
         add_channel(response)
         engine.execute("INSERT IGNORE INTO commentActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
         engine.execute("UPDATE commentActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
@@ -195,7 +195,7 @@ def log(response):
             if len(reaction) > 60:
                 reaction = reaction[:60]
             add_user(response)
-            engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, 0, 1)", response["item"]["channel"])
+            add_channel(response)
             engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES (%s, 0)", reaction)
             engine.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES(%s, %s, %s, %s, 0)", response["user"], response["item_user"], response["item"]["channel"], reaction)
             engine.execute("UPDATE emojiActivity SET given_count = given_count+1 WHERE from_user_id = %s and to_user_id = %s and in_channel_id = %s and emoji_name = %s", response["user"], response["item_user"], response["item"]["channel"], reaction)
@@ -207,7 +207,7 @@ def log(response):
             if len(reaction) > 60:
                 reaction = reaction[:60]
             add_user(response)
-            engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, null, 0, 1)", response["item"]["channel"])
+            add_channel(response)
             engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES (%s, 0)", reaction)
             engine.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES(%s, %s, %s, %s, 0)", response["user"], response["item_user"], response["item"]["channel"], reaction)
             engine.execute("UPDATE emojiActivity SET given_count = given_count-1 WHERE from_user_id = %s and to_user_id = %s and in_channel_id = %s and emoji_name = %s", response["user"], response["item_user"], response["item"]["channel"], reaction)
