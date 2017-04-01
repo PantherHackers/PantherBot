@@ -8,6 +8,8 @@ engine = create_engine('mysql://root@localhost:3306/pantherbot_test', echo=False
 
 def generate_report(response, args):
     if args[0] == 'time':
+        if len(args)<4:
+            return ["ERROR: Please use the following syntax `time random 2/1/18 5/1/18`"]
         channel = args[1]
         print channel
         range = args[2::]
