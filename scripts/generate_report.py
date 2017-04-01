@@ -1,15 +1,20 @@
 
-#gr time random 2/1/18 3/1/18
+#gr time random 2/1/18 5/1/18
 import datetime
 import pandas
 from collections import Counter
+from sqlalchemy import create_engine
+engine = create_engine('mysql://root@localhost:3306/pantherbot_test', echo=False)
 
 def generate_report(response, args):
     if args[0] == 'time':
         channel = args[1]
-        range = args[2:3]
-        time(channel, range)
+        print channel
+        range = args[2::]
+        print range
+        return time(range, channel)
 
+        "select hour from channelActivity where month >=1 and month < 5"
     if args[0] == 'top_users':
         pass
 
@@ -19,30 +24,41 @@ def generate_report(response, args):
     if args[0] == 'channel':
         pass
 
-def time(channel='slack-wide', range):
+def time(range, channel='all'):
     try:
-        v = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
-    except ValueError:
-        return ["Please input time in the syntax of mm/dd/yy"]
+        try:
+            print range
+            v = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
+        except ValueError:
+            return ["Please input time in the syntax of mm/dd/yy"]
+        q = None
+        print channel
+        if channel == 'all':
+            print 'we doin all'
+            q = engine.execute("SELECT hour FROM channelActivity WHERE day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", v[0].day, v[1].day, v[0].month, v[1].month, v[0].year, v[1].year).fetchall()
+        else:
+            print 'doing custom'
+            q = engine.execute("SELECT hour FROM channelActivity WHERE channel_id = (SELECT slack_id FROM channels WHERE name = %s) and day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", channel, v[0].day, v[1].day, v[0].month, v[1].month, v[0].year, v[1].year).fetchall()
 
-    q = None
-    if channel == 'slack-wide':
-        q = engine.execute("SELECT hour FROM channelActivity WHERE day_of_month = %s and month = %s and year = %s", v.day, v.month, v.year).fetchall()
-    else:
-        q = engine.execute("SELECT hour FROM channelActivity WHERE channel = %s and day_of_month = %s and month = %s and year = %s", channel, v.day, v.month, v.year).fetchall()
-    cnt = Counter()
-    for v in q:
-        cnt[v[0]] += 1
+        cnt = Counter()
+        print q
+        for v in q:
+            cnt[v[0]] += 1
 
-    i = 1
-    hour = []
-    count = []
-    while i <= 24:
-        hour.append(i)
-        count.append(cnt[i])
-        i += 1
+        i = 1
+        hour = []
+        count = []
+        while i <= 24:
+            hour.append(i)
+            count.append(cnt[i])
+            i += 1
 
-    df = pandas.DataFrame({'Count':count}, index=hour)
+        df = pandas.DataFrame({'Count':count}, index=hour)
+        # return [str(df)]
+        print df
+    except Exception, e:
+        print e
+
 
     # report = """ 
 
@@ -154,8 +170,4 @@ def time(channel='slack-wide', range):
 #         print('Name, Major:')
 #         for row in values:
 #             # Print columns A and E, which correspond to indices 0 and 4.
-#             print('%s, %s' % (row[0], row[4]))
-
-
-# if __name__ == '__main__':
-#     main()
+#             print('%s, %s' % (row[0], row[4])
