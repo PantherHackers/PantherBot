@@ -15,7 +15,7 @@ def g_r(response, args):
     if args[0] == 'time':
         if len(args)!=4:
             return ["ERROR: Please use the following syntax `time <channel> 2/1/17 5/1/18`"]
-        return time(args[2::], args[1])
+        return generate_time_graph(args[2::], args[1])
 
     if args[0] == 'top_users':
         pass
@@ -35,7 +35,7 @@ time (g_r time random 12/01/15 5/01/17)
     -- Takes 3 arguments: <channel> <begin date> <end date>```
         """]
 
-def time(range, channel='all'):
+def generate_time_graph(range, channel='all'):
     try:
         v = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
     except ValueError:
