@@ -18,21 +18,7 @@ def g_r(response, args):
         return time(args[2::], args[1])
 
     if args[0] == 'top_users':
-        if args[-1] == '--emoji':
-            channel, index = (None,)*2
-            try:
-                index = int(args[-2])
-            except ValueError:
-                index = 3
-
-            if args[-3] == args[0]:
-                channel = 'all'
-            else:
-                channel = args[-2]
-            return top_users(channel, emoji=True)
-        else:
-            return top_users(args[-1])
-
+        pass
 
     if args[0] == 'emoji':
         pass
@@ -48,9 +34,6 @@ time (g_r time random 12/01/15 5/01/17)
     then default is slack-wide.
     -- Takes 3 arguments: <channel> <begin date> <end date>```
         """]
-
-def top_users(channel, emoji=False):
-    q = engine.execute("SELECT ")
 
 def time(range, channel='all'):
     try:
