@@ -124,15 +124,6 @@ def on_message(ws, message):
         if admin_message(response):
             return
 
-
-    #TODO: Purge all this shit
-    # elif "team_join" == response["type"]:
-    #     if NEWUSERGREETING:
-    #         new_user_message(response)
-    #     USER_LIST = sc.api_call(  # noqa: 841
-    #         "users.list",
-    #     )
-
     log(response)   
 
 def log(response):
@@ -154,7 +145,6 @@ def log(response):
     def add_channel(r):
         q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
         if q.fetchall() == []:
-            print 'callin'
             r = sc.api_call(
                     "channels.info",
                     channel=r["channel"]
