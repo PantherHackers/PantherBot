@@ -150,7 +150,7 @@ def log(response):
                 is_admin = 1
             else:
                 is_admin = 0
-            engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin) VALUES (%s, %s, %s, "+str(is_admin)+")", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+            engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin) VALUES (%s, %s, %s, "+str(is_admin)+", 0)", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
 
     def add_channel(r):
         q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
