@@ -1,3 +1,10 @@
+#gr time random 2/1/18 5/1/18
+#gr time random this month
+#gr time random last 30 
+#gr time random 1m
+#gr top_user random 10
+#gr top_user random 10 --emoji
+#compare
 import datetime
 import pandas
 from collections import Counter
@@ -11,7 +18,21 @@ def g_r(response, args):
         return time(args[2::], args[1])
 
     if args[0] == 'top_users':
-        pass
+        if args[-1] == '--emoji':
+            channel, index = (None,)*2
+            try:
+                index = int(args[-2])
+            except ValueError:
+                index = 3
+
+            if args[-3] == args[0]:
+                channel = 'all'
+            else:
+                channel = args[-2]
+            return top_users(channel, emoji=True)
+        else:
+            return top_users(args[-1])
+
 
     if args[0] == 'emoji':
         pass
@@ -28,6 +49,8 @@ time (g_r time random 12/01/15 5/01/17)
     -- Takes 3 arguments: <channel> <begin date> <end date>```
         """]
 
+def top_users(channel, emoji=False):
+    q = engine.execute("SELECT ")
 
 def time(range, channel='all'):
     try:
