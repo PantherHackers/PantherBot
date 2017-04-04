@@ -20,13 +20,12 @@ def g_r(response, args):
         pass
 
     if args[0] == 'help':
-        return ["""
-        List of arguments for GenerateReport (g_r)
-
-        time (g_r time random 12/01/15 5/01/17)
-            -- Returns time related data on the channel specified, if none given
-            then default is slack-wide.
-            -- Takes 3 arguments: <channel> <begin date> <end date>
+        return ["""*List of arguments for GenerateReport (g_r)*
+```
+time (g_r time random 12/01/15 5/01/17)
+    -- Returns time related data on the channel specified, if none given
+    then default is slack-wide.
+    -- Takes 3 arguments: <channel> <begin date> <end date>```
         """]
 
 
