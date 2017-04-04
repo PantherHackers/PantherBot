@@ -59,7 +59,6 @@ def generate_time_graph(range, channel='all'):
         count.append(cnt[i])
         i += 1
 
-    print hour
     df = pandas.DataFrame({'Count':count}, index=hour)
     df.columns.name = 'Hour'
     return [str(df)]
