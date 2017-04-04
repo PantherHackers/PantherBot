@@ -41,7 +41,6 @@ import scripts
 from scripts import commands
 import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  # noqa: 401
 import re
-import requests
 import datetime
 
 #SQLAlchemy imports
