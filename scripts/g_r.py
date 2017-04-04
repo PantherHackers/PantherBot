@@ -37,27 +37,21 @@ time (g_r time random 12/01/15 5/01/17)
 
 def generate_time_graph(range, channel='all'):
     try:
-        v = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
+        date_list = [datetime.datetime.strptime(x, "%m/%d/%y").date() for x in range]
     except ValueError:
         return ["Please input time in the syntax of mm/dd/yy"]
-    q = None
+    hour_count = None
     if channel == 'all':
-        q = engine.execute("SELECT hour FROM channelActivity WHERE day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", v[0].day, v[1].day, v[0].month, v[1].month, v[0].year, v[1].year).fetchall()
+        hour_count = engine.execute("SELECT hour FROM channelActivity WHERE day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", date_list[0].day, date_list[1].day, date_list[0].month, date_list[1].month, date_list[0].year, date_list[1].year).fetchall()
     else:
-        q = engine.execute("SELECT hour FROM channelActivity WHERE channel_id = (SELECT slack_id FROM channels WHERE name = %s) and day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", channel, v[0].day, v[1].day, v[0].month, v[1].month, v[0].year, v[1].year).fetchall()
+        hour_count = engine.execute("SELECT hour FROM channelActivity WHERE channel_id = (SELECT slack_id FROM channels WHERE name = %s) and day_of_month >= %s and day_of_month <= %s and month >= %s and month <= %s and year >= %s and year <= %s", channel, date_list[0].day, date_list[1].day, date_list[0].month, date_list[1].month, date_list[0].year, date_list[1].year).fetchall()
 
-    cnt = Counter()
-    for v in q:
-        cnt[v[0]] += 1
+    counter = Counter()
+    for hc in hour_count:
+        counter[hc[0]] += 1
 
-
-    i = 1
-    hour=[]
-    count=[]
-    while i <= 24:
-        hour.append(i)
-        count.append(cnt[i])
-        i += 1
+    hour=range(0, 24)
+    count=[counter[h] for h in hour]
 
     df = pandas.DataFrame({'Count':count}, index=hour)
     df.columns.name = 'Hour'
