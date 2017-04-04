@@ -1,5 +1,3 @@
-
-#gr time random 2/1/18 5/1/18
 import datetime
 import pandas
 from collections import Counter
@@ -21,6 +19,16 @@ def g_r(response, args):
     if args[0] == 'channel':
         pass
 
+    if args[0] == 'help':
+        return """
+        List of arguments for GenerateReport (g_r)
+
+        time (g_r time random 12/01/15 5/01/17)
+            -- Returns time related data on the channel specified, if none given
+            then default is slack-wide.
+            -- Takes 3 arguments: <channel> <begin date> <end date>
+        """
+
 
 def time(range, channel='all'):
     try:
@@ -37,13 +45,16 @@ def time(range, channel='all'):
     for v in q:
         cnt[v[0]] += 1
 
+
     i = 1
-    hour=count=[]
+    hour=[]
+    count=[]
     while i <= 24:
         hour.append(i)
         count.append(cnt[i])
         i += 1
 
+    print hour
     df = pandas.DataFrame({'Count':count}, index=hour)
     df.columns.name = 'Hour'
     return [str(df)]
