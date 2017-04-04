@@ -101,13 +101,9 @@ def results(response, options, sc, args):
     count = 0
     for reaction in r["message"]["reactions"]:
         reac_dict[reaction["name"]] = reaction["count"] - 1
-        # if int(reaction["count"]) > count:
-        #     winner = reaction["name"]
-        #     count = int(reaction["count"])
 
     message = "Results:\n"
     for key in options[1]:
         message = message + key + ": " + str(reac_dict[options[1][key].strip(":")]) + "\n"
-        
-    # message += "\nThe Winner is:\n:tada:" + winner + ":tada:"
+
     return message
