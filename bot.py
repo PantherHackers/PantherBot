@@ -435,6 +435,15 @@ def channel_to_id(channel_names):
                 li.append(channel["id"])
     return li
 
+def new_user_message(response):
+    print "PantherBot:LOG:Member joined team"
+    sc.api_call(
+        "chat.postMessage",
+        channel=response["user"]["id"],
+        text=GREETING,
+        username=BOT_NAME,
+        icon_url=BOT_ICON_URL
+    )
 
 def check_log():
     global LOG
