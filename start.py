@@ -1,5 +1,6 @@
 import threading, time, logging, os, sys, codecs
 from bot import Bot
+from reactbot import ReactBot
 
 if __name__ == "__main__":
     print "PantherBot:LOG:Beginning Execution... Setting up"
@@ -24,13 +25,13 @@ if __name__ == "__main__":
 
     # List of all bots running in current process.
     BOT_LIST = []
-    react_bot = Bot(token, is_websocket=True, bot_name="PantherBot")
+    react_bot = ReactBot(token, bot_name="PantherBot")
     BOT_LIST.append(react_bot)
     bot_thread = threading.Thread(target=react_bot.WEBSOCKET.run_forever, kwargs={"ping_interval":30, "ping_timeout":10})
     print "PantherBot:LOG:Beginning thread"
     bot_thread.start()
 
-    proactive_bot = Bot(token, is_websocket=False, bot_name="PantherBot")
+    proactive_bot = Bot(token, bot_name="PantherBot")
     while True:
         time.sleep(300)
         for b in BOT_LIST:

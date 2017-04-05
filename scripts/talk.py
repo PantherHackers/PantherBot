@@ -18,3 +18,6 @@ def talk(response, args=[]):
     except:
         response_obj.messages_to_send.append("I'm feeling sick... come back later")
     return response_obj
+
+def is_admin_command():
+    return False
