@@ -119,3 +119,6 @@ def results(response, options, sc, args):
 
     response_obj.messages_to_send.append(message)
     return response_obj
+
+def is_admin_command():
+    return False

@@ -28,6 +28,12 @@ def helloworld(response, args=None):  # response is always given to you, good fo
         response_obj.status_code = -1
     return response_obj
 
+# Called before the script's main function (ie `helloworld()` above) to describe the purpose of the function
+# If admins are the only ones allowed to call this script's functionality, this should return True
+def is_admin_command():
+    return False
+
+# Called after the main function of the script should it return a status code that is not 0
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])
     if error_code is -1:

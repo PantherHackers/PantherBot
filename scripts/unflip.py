@@ -30,3 +30,6 @@ def error_cleanup(error_code):
     else:
         response_obj.messages_to_send.append("An unknown error occured. Error code: " + error_code)
     return response_obj
+
+def is_admin_command():
+    return False

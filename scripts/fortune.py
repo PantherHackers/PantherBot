@@ -17,3 +17,6 @@ def fortune(response):
     # make api call
     response_obj.messages_to_send.append(fortune)
     return response_obj
+
+def is_admin_command():
+    return False

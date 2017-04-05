@@ -23,3 +23,6 @@ def rage(response, args=[]):
         print "PantherBot:Log:Flip:Error in flip: " + str(e)
         response_obj.messages_to_send.append("Sorry, I can't seem to flip right now, or you gave an invalid argument")
     return response_obj
+
+def is_admin_command():
+    return False
