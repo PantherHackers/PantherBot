@@ -129,8 +129,8 @@ def on_message(ws, message):
 def log(response):
     global engine
     def add_user(r):
-        q = engine.execute("SELECT last_name FROM users WHERE slack_id=%s", r["user"])
-        if q.fetchall() == []:
+        users_with_this_slack_id = engine.execute("SELECT last_name FROM users WHERE slack_id=%s", r["user"])
+        if users_with_this_slack_id.fetchall() == []:
             r = sc.api_call(
                 "users.info",
                 user=r["user"]
