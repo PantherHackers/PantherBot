@@ -11,7 +11,7 @@ from collections import Counter
 from sqlalchemy import create_engine
 engine = create_engine('mysql://root@localhost:3306/pantherbot_test', echo=False)
 
-def g_r(response, args):
+def stats(response, args):
     if args[0] == 'time':
         if len(args)!=4:
             return ["ERROR: Please use the following syntax `time <channel> 2/1/17 5/1/18`"]
