@@ -3,7 +3,6 @@
 
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
-
 def talk(response, args=[]):
     cb = ChatBot('PantherBot')
     cb.set_trainer(ChatterBotCorpusTrainer)
