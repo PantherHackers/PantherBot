@@ -125,7 +125,7 @@ class ReactBot(Bot):
         return
 
     def on_open(self, ws):
-        Bot.send_msg("pantherbot-dev", "Bot successfully started")
+        Bot.send_msg(self, "pantherbot-dev", "Bot successfully started")
 
     # message_json Message
     # Sends a message to the same channel that message_json originates from
@@ -253,6 +253,8 @@ class ReactBot(Bot):
                     return True
 
                 if message_json["user"] not in self.ADMIN:
+                    print message_json["user"]
+                    print self.ADMIN
                     self.rmsg(message_json, ["You don't seem to be an authorized user to use these commands."])
                     return True
 

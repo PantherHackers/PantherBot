@@ -21,12 +21,13 @@ Attributes:
 """
 
 from slackclient import SlackClient
-import threading, websocket, json, re, time, codecs, random, logtofile
+import threading, websocket, json, re, time, codecs, random, logtofile, os
 import scripts
 from scripts import commands
 
 class Bot(object):
-    ADMIN = ["U25PPE8HH", "U118FGXFA", "U0LAMSXUM", "U3EAHHF40"]
+    admin_env_string = os.environ('PB_ADMIN')
+    ADMIN = admin_env_string.split(',')
     EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
     GENERAL_CHANNEL = ""
     TTPB = "talk-to-pantherbot"

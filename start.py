@@ -32,10 +32,14 @@ if __name__ == "__main__":
     bot_thread.start()
 
     proactive_bot = Bot(token, bot_name="PantherBot")
+    count_interval = 0
     while True:
-        time.sleep(300)
+        time.sleep(600)
+        count_interval += 1
         for b in BOT_LIST:
             if b.WEBSOCKET != None:
                 b.pb_cooldown = True
-        proactive_bot.smsg("random", "Today is a good day")
+        if count_interval == 72:
+            proactive_bot.smsg("pantherbot-dev", "Check-in")
+            count_interval = 0
         print "PantherBot:LOG:Proactive still alive"
