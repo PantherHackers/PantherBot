@@ -10,7 +10,8 @@ def admin(message_json, args, sc, bot, rmsg):
     if args[0].lower() == "update":
         update_bot(message_json, rmsg)
     if args[0].lower() == "add":
-        admin_add(message_json, bot, rmsg)
+        args.pop(0)
+        admin_add(message_json, args, sc, bot, rmsg)
     return response_obj
 
 
