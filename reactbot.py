@@ -81,7 +81,7 @@ class ReactBot(Bot):
             if Bot.GENERAL_CHANNEL is "":
                 Bot.GENERAL_CHANNEL = temp_list_of_channels[0]
         except:
-            pass
+            print "PantherBot:LOG:The #general channel has been renamed to a non-default value"
 
     def on_message(self, ws, message):
         message_thread = threading.Thread(target=self.on_message_thread, args=(message,))
