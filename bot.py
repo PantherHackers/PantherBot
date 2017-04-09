@@ -33,7 +33,7 @@ class Bot(object):
     VERSION = "2.0.0"
 
     def __init__(self, token, bot_name=""):
-        self.SC = None
+        self.SLACK_CLIENT = None
         self.BOT_NAME = bot_name
         self.BOT_ICON_URL = "http://i.imgur.com/QKaLCX7.png"
         self.USER_LIST = None
@@ -41,41 +41,41 @@ class Bot(object):
         self.WEBSOCKET = None
         self.THREADS = []
         self.pb_cooldown = True
-        self.create_sc(token)
+        self.create_slack_client(token)
 
-    def create_sc(self, token):
-    	self.SC = SlackClient(token)
+    def create_slack_client(self, token):
+    	self.SLACK_CLIENT = SlackClient(token)
 
     # Returns a list of channel IDs searched for by name
     def channels_to_ids(self, channel_names):
-        pub_channels = self.SC.api_call(
+        pub_channels = self.SLACK_CLIENT.api_call(
             "channels.list",
             exclude_archived=1
         )
-        pri_channels = self.SC.api_call(
+        pri_channels = self.SLACK_CLIENT.api_call(
             "groups.list",
             exclude_archived=1
         )
-        li = []
+        list_of_channels = []
         for channel in pub_channels["channels"]:
             for num in range(0, len(channel_names)):
                 if channel["name"].lower() == channel_names[num].lower():
-                    li.append(channel["id"])
+                    list_of_channels.append(channel["id"])
         # Same as above
         for channel in pri_channels["groups"]:
             for num in range(0, len(channel_names)):
                 if channel["name"].lower() == channel_names[num].lower():
-                    li.append(channel["id"])
-        return li
+                    list_of_channels.append(channel["id"])
+        return list_of_channels
 
     # Send Message
     # Sends a message to the specified channel (looks up by channel name, unless is_id is True)
-    def smsg(self, channel, text, is_id=False):
-        if not is_id:
-            channel_id = self.channels_to_ids([channel])[0]
-        else:
+    def send_msg(self, channel, text, is_id=False):
+        if is_id:
             channel_id = channel
-        self.SC.api_call(
+        else:
+            channel_id = self.channels_to_ids([channel])[0]
+        self.SLACK_CLIENT.api_call(
             "chat.postMessage",
             channel=channel_id,
             text=text,
@@ -84,8 +84,8 @@ class Bot(object):
         )
         print "PantherBot:LOG:Message sent"
 
-    def rreaction(self, channel, ts, emoji):
-        self.SC.api_call(
+    def emoji_reaction(self, channel, ts, emoji):
+        self.SLACK_CLIENT.api_call(
             "reactions.add",
             name=emoji,
             channel=channel,
