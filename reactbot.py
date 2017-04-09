@@ -33,7 +33,7 @@ class ReactBot(Bot):
     def connect_to_slack(self, token):
         # Initiates connection to the server based on the token, receives websocket URL "bot_conn"
         print "PantherBot:LOG:Starting RTM connection"
-        bot_conn = self.SC.api_call(
+        bot_conn = self.SLACK_CLIENT.api_call(
             "rtm.start",
             token = token
         )
@@ -53,17 +53,17 @@ class ReactBot(Bot):
     def initialize_info(self):
         # Update current USER_LIST (since members may join while PantherBot is off, its safe to make an API call every initial run)
         # When database is implemented, this should be sure to cross reference the database's list with this so new users are added.
-        self.USER_LIST = self.SC.api_call(
+        self.USER_LIST = self.SLACK_CLIENT.api_call(
             "users.list"
         )
 
         # List of polls for all channels
         self.POLLING_LIST = {}
-        pub_channels = self.SC.api_call(
+        pub_channels = self.SLACK_CLIENT.api_call(
             "channels.list",
             exclude_archived=1
         )
-        pri_channels = self.SC.api_call(
+        pri_channels = self.SLACK_CLIENT.api_call(
             "groups.list",
             exclude_archived=1
         )
@@ -74,12 +74,12 @@ class ReactBot(Bot):
             self.POLLING_LIST[c["id"]] = ["",[],"none"]
 
         # Update current General Channel (usually announcements)
-        li = Bot.channels_to_ids(self, ["announcements"])
-        if not li:
-            li = Bot.channels_to_ids(self, ["general"])
+        temp_list_of_channels = Bot.channels_to_ids(self, ["announcements"])
+        if not temp_list_of_channels:
+            temp_list_of_channels = Bot.channels_to_ids(self, ["general"])
         try:
             if Bot.GENERAL_CHANNEL is "":
-                Bot.GENERAL_CHANNEL = li[0]
+                Bot.GENERAL_CHANNEL = temp_list_of_channels[0]
         except:
             pass
 
@@ -102,7 +102,7 @@ class ReactBot(Bot):
                         self.POLLING_LIST[message_json["channel"]][0] = message_json["ts"]
                         temp_options = self.POLLING_LIST[message_json["channel"]][1]
                         for key in temp_options:
-                            Bot.rreaction(self, message_json, temp_options[key].strip(":"))
+                            Bot.emoji_reaction(self, message_json, temp_options[key].strip(":"))
                     return
 
             # Announcement reactions
@@ -125,13 +125,13 @@ class ReactBot(Bot):
         return
 
     def on_open(self, ws):
-        self.smsg("pantherbot-dev", "Bot successfully started")
+        Bot.send_msg("pantherbot-dev", "Bot successfully started")
 
     # message_json Message
     # Sends a message to the same channel that message_json originates from
     def rmsg(self, message_json, l):
         for text in l:
-            self.SC.api_call(
+            self.SLACK_CLIENT.api_call(
                 "chat.postMessage",
                 channel=message_json["channel"],
                 text=text,
@@ -139,22 +139,6 @@ class ReactBot(Bot):
                 icon_url=self.BOT_ICON_URL
             )
             print "PantherBot:LOG:Message sent"
-
-    # Send Message
-    # Sends a message to the specified channel (looks up by channel name, unless is_id is True)
-    def smsg(self, channel, text, is_id=False):
-        if not is_id:
-            channel_id = Bot.channels_to_ids(self, [channel])[0]
-        else:
-            channel_id = channel
-        self.SC.api_call(
-            "chat.postMessage",
-            channel=channel_id,
-            text=text,
-            username=self.BOT_NAME,
-            icon_url=self.BOT_ICON_URL
-        )
-        print "PantherBot:LOG:Message sent"
 
     # Command Messages are messages that begin with the `!` prefix
     # Returns True if a message_json or trigger was used in this method
@@ -192,7 +176,7 @@ class ReactBot(Bot):
 
             if com_text == "poll":
                 method_args.append(self.polling_list[message_json["channel"]])
-                method_args.append(self.SC)
+                method_args.append(self.SLACK_CLIENT)
 
             if com_text == "pugbomb":
                 method_args.append(self.pb_cooldown)
@@ -250,7 +234,7 @@ class ReactBot(Bot):
                 method_args = []
                 method_args.append(message_json)
                 method_args.append(args)
-                method_args.append(self.SC)
+                method_args.append(self.SLACK_CLIENT)
                 method_args.append(self)
                 method_args.append(self.rmsg)
                 
@@ -299,7 +283,7 @@ class ReactBot(Bot):
             elif message_json["text"].lower() == "hey pantherbot":
                 # returns user info that said hey
                 # TODO make this use USER_LIST
-                temp_user = self.SC.api_call(
+                temp_user = self.SLACK_CLIENT.api_call(
                     "users.info",
                     user = message_json["user"]
                 )
@@ -327,10 +311,10 @@ class ReactBot(Bot):
     def react_announcement(self, message_json):
         if self.GENERAL_CHANNEL != "" and message_json["channel"] == self.GENERAL_CHANNEL:
             temp_list = list(self.EMOJI_LIST)
-            Bot.rreaction(self, message_json, "pantherbot")
+            Bot.emoji_reaction(self, message_json, "pantherbot")
             for x in range(0, 3):
                 num = random.randrange(0, len(temp_list))
-                Bot.rreaction(self, message_json["channel"], message_json["ts"], temp_list.pop(num))
+                Bot.emoji_reaction(self, message_json["channel"], message_json["ts"], temp_list.pop(num))
 
     def riyans_denial(self, message_json):
         if "U0LJJ7413" in message_json["user"]:
