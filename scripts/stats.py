@@ -1,10 +1,3 @@
-#gr time random 2/1/18 5/1/18
-#gr time random this month
-#gr time random last 30 
-#gr time random 1m
-#gr top_user random 10
-#gr top_user random 10 --emoji
-#compare
 import datetime
 import pandas
 from collections import Counter
