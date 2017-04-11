@@ -76,7 +76,7 @@ pbCooldown = 100
 polling_list = dict()
 
 #Initialization
-print 'Starting boot sequence'
+print 'PantherBot:LOG:Attempting to connect to database'
 # engine = create_engine('mysql://root@localhost:3306/pantherbot_test', echo=False)
 engine = create_engine('mysql://{}:{}@{}'.format(os.environ["DB_USERNAME"], os.environ["DB_PASSWORD"], os.environ["DB_CONNECTION_STRING"]), echo=False)
 metadata = MetaData(bind=engine)
@@ -212,7 +212,7 @@ def setup_tables():
     try:
         engine.connect()
     except Exception:
-        print 'Creating the PB database'
+        print 'PantherBot:LOG:Creating the PB database'
         engine = create_engine('mysql://root@localhost:3306')
         engine.execute("CREATE DATABASE pantherbot_test")
         engine.execute("USE pantherbot_test")
