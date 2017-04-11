@@ -9,8 +9,8 @@ import datetime
 import pandas
 from collections import Counter
 from sqlalchemy import create_engine
-engine = create_engine('mysql://root@localhost:3306/pantherbot_test', echo=False)
-
+import os
+engine = create_engine('mysql://{}:{}@{}'.format(os.environ["DB_USERNAME"], os.environ["DB_PASSWORD"], os.environ["DB_CONNECTION_STRING"]), echo=False)
 def stats(response, args):
     if args[0] == 'time':
         if len(args)!=4:
