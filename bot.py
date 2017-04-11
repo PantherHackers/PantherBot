@@ -77,8 +77,8 @@ polling_list = dict()
 
 #Initialization
 print 'Starting boot sequence'
+# engine = create_engine('mysql://root@localhost:3306/pantherbot_test', echo=False)
 engine = create_engine('mysql://{}:{}@{}'.format(os.environ["DB_USERNAME"], os.environ["DB_PASSWORD"], os.environ["DB_CONNECTION_STRING"]), echo=False)
-
 # if os.environ['PB_ENV'] == 'production':
 #     #Prodcution shit here
 #     pass
