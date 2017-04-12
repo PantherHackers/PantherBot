@@ -140,7 +140,10 @@ def log(response):
             engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin) VALUES (%s, %s, %s, "+str(is_admin)+", 0)", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
 
     def add_channel(r):
-        q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
+        if r.has_key("channel"):
+            q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
+        else:
+            q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["item"]["channel"])
         if q.fetchall() == []:
             r = sc.api_call(
                     "channels.info",
