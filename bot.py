@@ -125,7 +125,7 @@ def on_message(ws, message):
 
 def log(response):
     global engine
-    def add_user(r):
+    def add_user(r, team_join=False):
         users_with_this_slack_id = engine.execute("SELECT last_name FROM users WHERE slack_id=%s", r["user"])
         if users_with_this_slack_id.fetchall() == []:
             r = sc.api_call(
@@ -137,7 +137,11 @@ def log(response):
                 is_admin = 1
             else:
                 is_admin = 0
-            engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin) VALUES (%s, %s, %s, "+str(is_admin)+", 0)", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+
+            if team_join==True:
+                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin, team_join) VALUES (%s, %s, %s, "+str(is_admin)+", 0, CURDATE())", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+            else:
+                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin) VALUES (%s, %s, %s, "+str(is_admin)+", 0)", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
 
     def add_channel(r):
         if r.has_key("channel"):
@@ -161,7 +165,7 @@ def log(response):
         return
         
     if response["type"] == "team_join":
-        add_user(response)
+        add_user(response, team_join=True)
         print "PantherBot:LOG:Member joined team"
         sc.api_call(
             "chat.postMessage",
@@ -220,7 +224,7 @@ def setup_tables():
         engine.execute("CREATE DATABASE pantherbot_test")
         engine.execute("USE pantherbot_test")
         engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive TINYINT, is_active TINYINT, PRIMARY KEY (slack_id))")
-        engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), is_admin TINYINT, is_pb_admin TINYINT, PRIMARY KEY (slack_id))")
+        engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), join_date DATETIME NOW(), is_admin TINYINT, is_pb_admin TINYINT, PRIMARY KEY (slack_id))")
         engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom TINYINT, PRIMARY KEY (name))")
         engine.execute("CREATE TABLE commentActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, PRIMARY KEY (from_user_id, to_channel_id), FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
         engine.execute("CREATE TABLE emojiActivity(from_user_id VARCHAR(9), to_user_id VARCHAR(9), in_channel_id VARCHAR(9), emoji_name VARCHAR(60), given_count INTEGER, PRIMARY KEY (from_user_id, to_user_id, in_channel_id, emoji_name),  FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_user_id) REFERENCES users (slack_id), FOREIGN KEY (in_channel_id) REFERENCES channels (slack_id))")    
