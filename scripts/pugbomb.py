@@ -1,23 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import praw
+import sys
+from response import Response
 
+def pugbomb(response, pb_cooldown, args):
+    response_obj = Response(sys.modules[__name__])
+    if pb_cooldown is False:
+        response_obj.messages_to_send.append("Sorry, pugbomb is on cooldown.")
+        return response_obj
 
-def pugbomb(response, args):
-    #gets the number
     try:
         num = round(int(args[0]))
     except:
-        return ["Please enter a number next time."]
+        # not a number
+        response_obj.status_code = -1
+        return response_obj
 
     if num > 10:
         num = 10
     elif num <= 0:
-        return ["Can only show one or more pugs"]
+        # not more than 0
+        response_obj.status_code = -2
 
     reddit = praw.Reddit(client_id='aGpQJujCarDHWA',
-                     	client_secret='fkA9lp0NDx23B_qdFezTeGyGKu8',
-                     	user_agent='my user agent',
+                        client_secret='fkA9lp0NDx23B_qdFezTeGyGKu8',
+                        user_agent='my user agent',
                         password='PHGSU2017',
                         username='Panther_Bot')
     
@@ -31,4 +39,26 @@ def pugbomb(response, args):
     pug_urls.append("""
         `Having issues viewing pugs? Try Preferences > Messages > 'Even if theyre larger than 2MB'`
         """)  
-    return pug_urls
+    response_obj.messages_to_send = pug_urls
+    response_obj.special_condition = True
+    return response_obj
+
+def error_cleanup(error_code):
+    response_obj = Response(sys.modules[__name__])
+    if error_code is -1:
+        response_obj.messages_to_send.append("Sorry, you didn't enter a number!")
+    elif error_code is -2:
+        response_obj.messages_to_send.append("Sorry, I can't give you negative pugs.")
+    else:
+        response_obj.messages_to_send.append("An unknown error occured. Error code: " + str(error_code))
+    return response_obj
+
+def set_cooldown(bot):
+    if bot.pb_cooldown is True:
+        bot.pb_cooldown = False
+
+def special_condition(bot):
+    set_cooldown(bot)
+
+def is_admin_command():
+    return False
