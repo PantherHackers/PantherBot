@@ -129,7 +129,7 @@ class ReactBot(Bot):
 
     # message_json Message
     # Sends a message to the same channel that message_json originates from
-    def rmsg(self, message_json, l):
+    def response_message(self, message_json, l):
         for text in l:
             self.SLACK_CLIENT.api_call(
                 "chat.postMessage",
@@ -160,14 +160,14 @@ class ReactBot(Bot):
                 return False
 
             if com_text == "version":
-                self.rmsg(message_json, [self.VERSION])
+                self.response_message(message_json, [self.VERSION])
                 return True
 
             if com_text == "talk":
                 ch = Bot.channels_to_ids(self, [TTPB])
                 c = ch[0]
                 if message_json["channel"] != c:
-                    self.rmsg(message_json, ["Talk to me in #" + TTPB])
+                    self.response_message(message_json, ["Talk to me in #" + TTPB])
                     return True
 
             # list that contains the message_json and args for all methods
@@ -191,22 +191,22 @@ class ReactBot(Bot):
                 # Check if the command is an admin command using the script's self-declaration method
                 check_admin_function = getattr(commands[com_text], "is_admin_command")
                 if check_admin_function():
-                    self.rmsg(message_json, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])
+                    self.response_message(message_json, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])
                     return True
             except:
                 # If it fails, outputs that no command was found or syntax was broken, since all scripts must follow this convention.
-                self.rmsg(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
+                self.response_message(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
                 return True
 
             # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
             called_function = getattr(commands[com_text], com_text)
             script_response = called_function(*method_args)
             if script_response.status_code is 0:
-                self.rmsg(message_json, script_response.messages_to_send)
+                self.response_message(message_json, script_response.messages_to_send)
             else:
                 error_cleanup = getattr(script_response.module_called, "error_cleanup")
                 script_response = error_cleanup(script_response.status_code)
-                self.rmsg(message_json, script_response.messages_to_send)
+                self.response_message(message_json, script_response.messages_to_send)
             if script_response.special_condition:
                 special_condition_function = getattr(script_response.module_called, "special_condition")
                 special_condition_function(self)
@@ -236,7 +236,7 @@ class ReactBot(Bot):
                 method_args.append(args)
                 method_args.append(self.SLACK_CLIENT)
                 method_args.append(self)
-                method_args.append(self.rmsg)
+                method_args.append(self.response_message)
                 
                 # This is in a try statement since it is checking if a module exists with the com_text name,
                 # It makes the try statement that was previously around the `called_function` section below much smaller,
@@ -245,28 +245,28 @@ class ReactBot(Bot):
                     # Check if the command is an admin command using the script's self-declaration method
                     check_admin_function = getattr(commands[com_text], "is_admin_command")
                     if not check_admin_function():
-                        self.rmsg(message_json, ["Sorry, normal commands should be used with the `!` prefix (ie `!coin`)"])
+                        self.response_message(message_json, ["Sorry, normal commands should be used with the `!` prefix (ie `!coin`)"])
                         return True
                 except:
                     # If it fails, outputs that no command was found or syntax was broken, since all scripts must follow this convention.
-                    self.rmsg(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
+                    self.response_message(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
                     return True
 
                 if message_json["user"] not in self.ADMIN:
                     print message_json["user"]
                     print self.ADMIN
-                    self.rmsg(message_json, ["You don't seem to be an authorized user to use these commands."])
+                    self.response_message(message_json, ["You don't seem to be an authorized user to use these commands."])
                     return True
 
                 # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
                 called_function = getattr(commands[com_text], com_text)
                 script_response = called_function(*method_args)
                 if script_response.status_code is 0:
-                    self.rmsg(message_json, script_response.messages_to_send)
+                    self.response_message(message_json, script_response.messages_to_send)
                 else:
                     error_cleanup = getattr(script_response.module_called, "error_cleanup")
                     script_response = error_cleanup(script_response.status_code)
-                    self.rmsg(message_json, script_response.messages_to_send)
+                    self.response_message(message_json, script_response.messages_to_send)
                 if script_response.special_condition:
                     special_condition_function = getattr(script_response.module_called, "special_condition")
                     special_condition_function(self)
@@ -280,7 +280,7 @@ class ReactBot(Bot):
         # If not an ! or $, checks if it should respond to another message format, like a greeting 
         try:
             if re.match(".*panther +hackers.*", str(message_json["text"].lower())):
-                self.rmsg(message_json, ["NO THIS IS PANTHERHACKERS"])
+                self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
                 return True
             elif message_json["text"].lower() == "hey pantherbot":
                 # returns user info that said hey
@@ -290,20 +290,20 @@ class ReactBot(Bot):
                     user = message_json["user"]
                 )
                 print "PantherBot:LOG:Greeting:We did it reddit"
-                self.rmsg(message_json, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
+                self.response_message(message_json, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
                 return True
             elif message_json["text"].lower() == "pantherbot ping":
-                self.rmsg(message_json, ["PONG"])
+                self.response_message(message_json, ["PONG"])
                 return True
             elif message_json["text"].lower() == ":rip: pantherbot" or message_json["text"].lower() == "rip pantherbot":
-                self.rmsg(message_json, [":rip:"])
+                self.response_message(message_json, [":rip:"])
                 return True
             elif re.match(".*panther +hackers.*", str(message_json["text"].lower())):
-                self.rmsg(message_json, ["NO THIS IS PANTHERHACKERS"])
+                self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
                 return True
             elif "subtype" in message_json:
                 if message_json["subtype"] == "channel_leave" or message_json["subtype"] == "group_leave": 
-                    self.rmsg(message_json, ["Press F to pay respects"])
+                    self.response_message(message_json, ["Press F to pay respects"])
                     return True
             return False
         except:
@@ -321,6 +321,6 @@ class ReactBot(Bot):
     def riyans_denial(self, message_json):
         if "U0LJJ7413" in message_json["user"]:
             if message_json["text"][:1] in ["!", "$"] or message_json["text"].lower() in ["hey pantherbot", "pantherbot ping"]: 
-                self.rmsg(message_json, ["No."])
+                self.response_message(message_json, ["No."])
                 return True
         return False
