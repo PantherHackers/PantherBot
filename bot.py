@@ -137,7 +137,6 @@ def log(response):
                 is_admin = 1
             else:
                 is_admin = 0
-
             if team_join==True:
                 engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin, team_join) VALUES (%s, %s, %s, "+str(is_admin)+", 0, CURDATE())", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
             else:
@@ -166,14 +165,6 @@ def log(response):
         
     if response["type"] == "team_join":
         add_user(response, team_join=True)
-        print "PantherBot:LOG:Member joined team"
-        sc.api_call(
-            "chat.postMessage",
-            channel=response["user"]["id"],
-            text=GREETING,
-            username=BOT_NAME,
-            icon_url=BOT_ICON_URL
-        )
         return
     
     if response["type"] == "reaction_added":
