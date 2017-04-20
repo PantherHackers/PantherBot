@@ -3,23 +3,14 @@
 This module runs basically everything.
 
 Attributes:
-    VERSION = "1.1.9" (String): Version Number: release.version_num.revision_num
+    VERSION = "2.0.0" (String): Version Number: release.version_num.revision_num
 
     # Config Variables
-    BOT_NAME (String): Bot name that will appear in Slack on message posting
-    BOT_ICON_URL (String): Bot icon that will appear in Slack on message posting
-    SLACK (boolean): Config variable, toggles connecting to Slack RTM service
-    GOOGLECAL (boolean): Config variable, toggles connecting to Google Calendar API service
-    LOGGER (boolean): Config variable, toggles logger functionality
-    GOOGLECALSECRET (String): Config variable, file name for google-calendar secret in the secrets/ folder
-    NEWUSERGREETING (boolean): Config variable, toggles new user greeting for Slack team
-    GREETING (String): Config variable, String to be sent to new users on team join
     EMOJI_LIST (List): List of Strings for emojis to be added to announcements
     USER_LIST (JSON): List of users in JSON format
     ADMIN (List): ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] testing defaults
-    ADMIN_COMMANDS (List): List of admin commands that cant be executed normallu
     TTPB (String): Config variable, sets channel for cleverbot integration
-    GENERAL (Stirng): Config variable, sets channel for general name
+    GENERAL (Stirng): Config variable, sets channel for general's name
     LOG (boolean): Global Variable
     LOGC (boolean): Global Variable
     pbCooldown (int): Global Variable
@@ -29,592 +20,83 @@ Attributes:
 
 """
 
-
-# Slack imports
 from slackclient import SlackClient
-# Google imports
-from oauth2client.service_account import ServiceAccountCredentials
-from httplib2 import Http
-from apiclient.discovery import build
-# Other imports
+import threading, websocket, json, re, time, codecs, random, logtofile, os, datetime
 import scripts
 from scripts import commands
-import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  # noqa: 401
-import re
-import datetime
 
 #SQLAlchemy imports
 from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String
 
-
-# Version Number: release.version_num.revision_num
-VERSION = "1.1.9"
-
-# Config Variables
-BOT_NAME = ""
-BOT_ICON_URL = ""
-SLACK = False
-GOOGLECAL = False
-LOGGER = False
-GOOGLECALSECRET = ""
-NEWUSERGREETING = False
-GREETING = ""
-EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]  # noqa: 501
-USER_LIST = []
-ADMIN = []
-ADMIN_COMMANDS = ["log", "calendar", "admin"]
-TTPB = ""
-GENERAL = ""
-
-# Global variabls
-global LOG
-LOG = False
-global LOGC
-LOGC = []
-global pbCooldown
-pbCooldown = 100
-polling_list = dict()
-
-#Initialization
-print 'PantherBot:LOG:Attempting to connect to database'
-# engine = create_engine('mysql://root@localhost:3306/pantherbot_test', echo=False)
-engine = create_engine('mysql://{}:{}@{}'.format(os.environ["DB_USERNAME"], os.environ["DB_PASSWORD"], os.environ["DB_CONNECTION_STRING"]), echo=False)
-metadata = MetaData(bind=engine)
-
-# function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything  # noqa: 501
-def on_message(ws, message):
-    s = message.decode('utf-8')
-    response = json.loads(unicode(s))
-    print "PantherBot:LOG:message:" + response["type"]
-
-    # Pugbomb cooldown incrementation
-    global pbCooldown
-    pbCooldown += 1
-    global LOG
-    global LOGC
-
-    # Checks if the event type returned by Slack is a message
-    if "message" == response["type"]:
-        if "subtype" in response:
-            if response["subtype"] == "bot_message":
-                #polling logic
-                if "POLL_BEGIN" in response["text"]:
-                    polling_list[response["channel"]][0] = response["ts"]
-                    temp_options = polling_list[response["channel"]][1]
-                    for key in temp_options:
-                        rreaction(response, temp_options[key].strip(":"))
-                return
-        # Checks LOG and LOGC values, then
-        # If LOG has been set to true it will save all spoken messages.
-        check_log()
-        if LOG and response["channel"] in LOGC:
-            logtofile.log(sc, response)
-
-        # Announcement reactions
-        react_announcement(response)
-        # if riyansDenial(response):
-        #     return
-        if other_message(response):
-            return
-        if command_message(response):
-            return
-        if admin_message(response):
-            return
-
-    log(response)   
-
-def log(response):
-    global engine
-    def add_user(r, team_join=False):
-        users_with_this_slack_id = engine.execute("SELECT last_name FROM users WHERE slack_id=%s", r["user"])
-        if users_with_this_slack_id.fetchall() == []:
-            r = sc.api_call(
-                "users.info",
-                user=r["user"]
-                )
-            is_admin = r["user"]["is_admin"]
-            if is_admin:
-                is_admin = 1
-            else:
-                is_admin = 0
-            if team_join==True:
-                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin, team_join) VALUES (%s, %s, %s, "+str(is_admin)+", 0, CURDATE())", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
-            else:
-                engine.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin) VALUES (%s, %s, %s, "+str(is_admin)+", 0)", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
-
-    def add_channel(r):
-        if r.has_key("channel"):
-            q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
-        else:
-            q = engine.execute("SELECT name FROM channels WHERE slack_id=%s", r["item"]["channel"])
-        if q.fetchall() == []:
-            r = sc.api_call(
-                    "channels.info",
-                    channel=r["channel"]
-                )
-            engine.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, %s, 0, 1)", r["channel"]["id"], r["channel"]["name"])
-
-    if response["type"] == "message":
-        add_user(response)
-        add_channel(response)
-        engine.execute("INSERT IGNORE INTO commentActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
-        engine.execute("UPDATE commentActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
-        now = datetime.datetime.now()
-        engine.execute("INSERT INTO channelActivity (channel_id, hour, week_day, day_of_month, month, year) VALUES (%s, %s, %s, %s, %s, %s)", response["channel"], now.hour, now.strftime("%a")[:2], now.day, now.month, now.year)
-        return
-        
-    if response["type"] == "team_join":
-        add_user(response, team_join=True)
-        return
+class Bot(object):
+    admin_env_string = os.environ('PB_ADMIN')
+    ADMIN = admin_env_string.split(',')
+    EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
+    GENERAL_CHANNEL = ""
+    TTPB = "talk-to-pantherbot"
+    VERSION = "2.0.0"
     
-    if response["type"] == "reaction_added":
-        if response["item"]["type"] == "message":
-            reaction = response["reaction"]
-            if len(reaction) > 60:
-                reaction = reaction[:60]
-            add_user(response)
-            add_channel(response)
-            engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES (%s, 0)", reaction)
-            engine.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES(%s, %s, %s, %s, 0)", response["user"], response["item_user"], response["item"]["channel"], reaction)
-            engine.execute("UPDATE emojiActivity SET given_count = given_count+1 WHERE from_user_id = %s and to_user_id = %s and in_channel_id = %s and emoji_name = %s", response["user"], response["item_user"], response["item"]["channel"], reaction)
-        return
 
-    if response["type"] == "reaction_removed":
-        if response["item"]["type"] == "message":
-            reaction = response["reaction"]
-            if len(reaction) > 60:
-                reaction = reaction[:60]
-            add_user(response)
-            add_channel(response)
-            engine.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES (%s, 0)", reaction)
-            engine.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES(%s, %s, %s, %s, 0)", response["user"], response["item_user"], response["item"]["channel"], reaction)
-            engine.execute("UPDATE emojiActivity SET given_count = given_count-1 WHERE from_user_id = %s and to_user_id = %s and in_channel_id = %s and emoji_name = %s", response["user"], response["item_user"], response["item"]["channel"], reaction)
-        return
+    def __init__(self, token, bot_name=""):
+        self.SLACK_CLIENT = None
+        self.BOT_NAME = bot_name
+        self.BOT_ICON_URL = "http://i.imgur.com/QKaLCX7.png"
+        self.USER_LIST = None
+        self.POLLING_LIST = dict()
+        self.WEBSOCKET = None
+        self.THREADS = []
+        self.pb_cooldown = True
+        self.ENGINE = create_engine('mysql://{}:{}@{}'.format(os.environ["DB_USERNAME"], os.environ["DB_PASSWORD"], os.environ["DB_CONNECTION_STRING"]), echo=False)
+        self.METADATA = MetaData(bind=self.ENGINE)
+        self.create_slack_client(token)
+        self.setup_tables()
 
-    if response["type"] == "channel_created":
-        engine.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, %s, 0, 1)", response["channel"]["id"], response["channel"]["name"])
-        return
+    def create_slack_client(self, token):
+    	self.SLACK_CLIENT = SlackClient(token)
 
-    if response["type"] == "channel_archive":
-        add_channel(response)
-        engine.execute("UPDATE channels SET is_active = 0 WHERE slack_id = %s", response["channel"])
-        return
+    # Returns a list of channel IDs searched for by name
+    def channels_to_ids(self, channel_names):
+        pub_channels = self.SLACK_CLIENT.api_call(
+            "channels.list",
+            exclude_archived=1
+        )
+        pri_channels = self.SLACK_CLIENT.api_call(
+            "groups.list",
+            exclude_archived=1
+        )
+        list_of_channels = []
+        for channel in pub_channels["channels"]:
+            for num in range(0, len(channel_names)):
+                if channel["name"].lower() == channel_names[num].lower():
+                    list_of_channels.append(channel["id"])
+        # Same as above
+        for channel in pri_channels["groups"]:
+            for num in range(0, len(channel_names)):
+                if channel["name"].lower() == channel_names[num].lower():
+                    list_of_channels.append(channel["id"])
+        return list_of_channels
 
-    if response["type"] == "channel_unarchive":
-        add_channel(response)
-        engine.execute("UPDATE channels SET is_active = 1 WHERE slack_id = %s", response["channel"])
-        return
-
-def setup_tables():
-    global engine
-    try:
-        engine.connect()
-    except Exception:
-        print 'PantherBot:LOG:Creating the PB database'
-        engine = create_engine('mysql://root@localhost:3306')
-        engine.execute("CREATE DATABASE pantherbot_test")
-        engine.execute("USE pantherbot_test")
-        engine.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive TINYINT, is_active TINYINT, PRIMARY KEY (slack_id))")
-        engine.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), join_date DATETIME, is_admin TINYINT, is_pb_admin TINYINT, PRIMARY KEY (slack_id))")
-        engine.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom TINYINT, PRIMARY KEY (name))")
-        engine.execute("CREATE TABLE commentActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, PRIMARY KEY (from_user_id, to_channel_id), FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
-        engine.execute("CREATE TABLE emojiActivity(from_user_id VARCHAR(9), to_user_id VARCHAR(9), in_channel_id VARCHAR(9), emoji_name VARCHAR(60), given_count INTEGER, PRIMARY KEY (from_user_id, to_user_id, in_channel_id, emoji_name),  FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_user_id) REFERENCES users (slack_id), FOREIGN KEY (in_channel_id) REFERENCES channels (slack_id))")    
-        engine.execute("CREATE TABLE channelActivity(channel_id VARCHAR(9), hour TINYINT, week_day VARCHAR(2), day_of_month TINYINT, month TINYINT, year SMALLINT, FOREIGN KEY (channel_id) REFERENCES channels (slack_id))")
-
-setup_tables()
-
-def command_message(response):
-    # Checks if message starts with an exclamation point, and does the respective task  # noqa: 501
-    if response["text"][:1] == "!":
-        global pbCooldown
-
-        # put all ! command parameters into an array
-        args = response["text"].split()
-        com_text = args[0][1:].lower()
-        args.pop(0)  # gets rid of the command
-
-
-        # checks if command is an Admin command
-        if com_text in ADMIN_COMMANDS:
-            rmsg(response, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])  # noqa: 501
-            return True
-
-
-        # special cases for some functions
-        if com_text == "pugbomb":
-            if pbCooldown < 100:
-                rmsg(response, ["Sorry, pugbomb is on cooldown"])
-                return True
-            else:
-                pbCooldown = 0
-
-        if com_text == "version":
-            rmsg(response, [VERSION])
-            return True
-
-        if com_text == "talk":
-            ch = channel_to_id([TTPB])
-            c = ch[0]
-            if response["channel"] != c:
-                rmsg(response, ["Talk to me in #" + TTPB])
-                return True
-
-        if com_text[0] == '!':
-            return True
-
-        # list that contains the response and args for all methods
-        method_args = []
-        method_args.append(response)
-
-        if com_text == "poll":
-            method_args.append(polling_list[response["channel"]])
-            method_args.append(sc)
-
-        if len(args) > 0:
-            method_args.append(args)
-        # Attempts to find a command with the name matching the command given, and executes it  # noqa: 501
-        try:
-            called_function = getattr(commands[com_text], com_text)
-            rmsg(response, called_function(*method_args))
-            return True
-        except:
-            # If it fails, outputs that no command was found or syntax was broken.  # noqa: 501
-            rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
-            return True
-    return False
-
-
-def admin_message(response):
-    # Repeats above except for admin commands
-    if response["text"][:1] == "$":
-        # Checks if message is longer than "$"
-        if len(response["text"]) > 1:
-            args = response["text"].split()
-            com_text = args[0][1:].lower()
-            args.pop(0)
-            # Checks if pattern differs from admin commands
-            # by containing digits or another "$" character
-            if any(i.isdigit() for i in com_text) or ('$' in com_text):
-                return False
-
-            if response["user"] in ADMIN:
-                # Special case for calendar requiring unique arguments
-                if com_text == "calendar":
-                    if GOOGLECAL:
-                        rmsg(response, scripts.calendar.calendar(args, calendar_obj))  # noqa: 501
-                        return True
-                l = []
-                l.append(response)
-                l.append(args)
-                l.append(sc)
-                l.append(rmsg)
-                try:
-                    f = getattr(commands[com_text], com_text)
-                    f(*l)
-                    return True
-                except:
-                    rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])  # noqa: 501
-                    return True
-
-            # Checks if command is an admin command
-            elif com_text in ADMIN_COMMANDS:
-                rmsg(response, ["It seems you aren't authorized to use admin commands. If you believe this a mistake, contact the maintainer(s) of PantherBot"])  # noqa: 501
-                return True
-            else:
-                rmsg(response, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
-
-    return False
-
-
-def other_message(response):
-    # If not an ! or $, checks if it should respond to another message format, like a greeting  # noqa: 501
-    try:
-        if re.match(".*panther +hackers.*", str(response["text"].lower())):
-            rmsg(response, ["NO THIS IS PANTHERHACKERS"])
-            return True
-        elif response["text"].lower() == "hey pantherbot":
-            # returns user info that said hey
-            # TODO make this use USER_LIST
-            temp_user = sc.api_call(
-                "users.info",
-                user = response["user"]  # noqa
-            )
-            print "PantherBot:LOG:Greeting:We did it reddit"
-            rmsg(response, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])  # noqa: 501
-            return True
-        elif response["text"].lower() == "pantherbot ping":
-            rmsg(response, ["PONG"])
-            return True
-        elif response["text"].lower() == ":rip: pantherbot" or response["text"].lower() == "rip pantherbot":  # noqa: 501
-            rmsg(response, [":rip:"])
-            return True
-        elif re.match(".*panther +hackers.*", str(response["text"].lower())):
-            rmsg(response, ["NO THIS IS PANTHERHACKERS"])
-            return True
-        elif "subtype" in response:
-            if response["subtype"] == "channel_leave" or response["subtype"] == "group_leave":  # noqa: 501
-                rmsg(response, ["Press F to pay respects"])
-                return True
-        return False
-    except:
-        print "Error with checking in other_message: likely the message contained unicode characters"
-
-
-def riyans_denial(response):
-    if "U0LJJ7413" in response["user"]:
-        if response["text"][:1] in ["!", "$"] or response["text"].lower() in ["hey pantherbot", "pantherbot ping"]:  # noqa: 501
-            rmsg(response, ["No."])
-            return True
-    return False
-
-def react_announcement(response):
-    if GENERAL != "" and response["channel"] == GENERAL:
-        temp_list = list(EMOJI_LIST)
-        rreaction(response, "pantherbot")
-        for x in range(0, 3):
-            num = random.randrange(0, len(temp_list))
-            rreaction(response, temp_list.pop(num))
-
-
-# Less used WebSocket functions
-def on_error(ws, error):
-    print "PantherBot:LOG:ERROR"
-    print error
-
-
-def on_close(ws):
-    print "PantherBot:LOG:Connection lost or closed..."
-
-
-# send a response message (sends to same channel as command was issued)
-def rmsg(response, l):
-    for text in l:
-        sc.api_call(
+    # Send Message
+    # Sends a message to the specified channel (looks up by channel name, unless is_id is True)
+    def send_msg(self, channel, text, is_id=False):
+        if is_id:
+            channel_id = channel
+        else:
+            channel_id = self.channels_to_ids([channel])[0]
+        self.SLACK_CLIENT.api_call(
             "chat.postMessage",
-            channel=response["channel"],
+            channel=channel_id,
             text=text,
-            username=BOT_NAME,
-            icon_url=BOT_ICON_URL
+            username=self.BOT_NAME,
+            icon_url=self.BOT_ICON_URL
         )
         print "PantherBot:LOG:Message sent"
 
-
-def rreaction(response, emoji):
-    sc.api_call(
-        "reactions.add",
-        name=emoji,
-        channel=response["channel"],
-        timestamp=response["ts"]
-    )
-    print "PantherBot:LOG:Reaction posted"
-
-
-def channel_to_id(channel_names):
-    pub_channels = sc.api_call(
-        "channels.list",
-        exclude_archived=1
-    )
-    pri_channels = sc.api_call(
-        "groups.list",
-        exclude_archived=1
-    )
-    li = []
-    for channel in pub_channels["channels"]:
-        for num in range(0, len(channel_names)):
-            if channel["name"].lower() == channel_names[num].lower():
-                li.append(channel["id"])
-    # Same as above
-    for channel in pri_channels["groups"]:
-        for num in range(0, len(channel_names)):
-            if channel["name"].lower() == channel_names[num].lower():
-                li.append(channel["id"])
-    return li
-
-def new_user_message(response):
-    print "PantherBot:LOG:Member joined team"
-    sc.api_call(
-        "chat.postMessage",
-        channel=response["user"]["id"],
-        text=GREETING,
-        username=BOT_NAME,
-        icon_url=BOT_ICON_URL
-    )
-
-def check_log():
-    global LOG
-    global LOGC
-    filename = "config/log.txt"
-    script_dir = os.path.dirname(__file__)
-    fullDir = os.path.join(script_dir, filename)
-    if os.path.isfile(fullDir) == False:  # noqa
-        target = open(fullDir, "w+")
-        target.write(u'False')
-        target.close()
-    else:
-        target = open(fullDir, "r")
-    if target.readline().strip('\n') == "True":
-        LOG = True
-    else:
-        LOG = False
-    LOGC = [line.rstrip('\n') for line in target]
-    target.close()
-
-
-# necessary shenanigans
-if __name__ == "__main__":
-    print "PantherBot:LOG:Beginning Execution... Setting up"
-
-    # Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)  # noqa: 501
-    if sys.stdout.encoding != 'utf-8':
-        sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'strict')
-    if sys.stderr.encoding != 'utf-8':
-        sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
-
-    # load config files
-    print "PantherBot:LOG:Loading config files"
-    filename = "config/admin.txt"
-    script_dir = os.path.dirname(__file__)
-    fullDir = os.path.join(script_dir, filename)
-    if not os.path.isfile(fullDir):
-        target = io.open(fullDir, "w+", encoding='utf-8')
-        target.close()
-    ADMIN = [line.rstrip('\n') for line in open(fullDir)]
-
-    filename = "config/bot.txt"
-    script_dir = os.path.dirname(__file__)
-    fullDir = os.path.join(script_dir, filename)
-    if not os.path.isfile(fullDir):
-        target = open(fullDir, "w+")
-        target.write('PantherBot\n')
-        target.write('http://i.imgur.com/QKaLCX7.png\n')
-        target.close()
-    target = io.open(fullDir, "r")
-    BOT_NAME = target.readline().rstrip('\n')
-    BOT_ICON_URL = target.readline().rstrip('\n')
-    target.close()
-
-    filename = "config/settings.txt"
-    script_dir = os.path.dirname(__file__)
-    fullDir = os.path.join(script_dir, filename)
-    if not os.path.isfile(fullDir):
-        target = open(fullDir, "w+")
-        target.write('True\n')
-        target.write('False\n')
-        target.write('True\n')
-        target.write('google-secret.json\n')
-        target.write('True\n')
-        target.write('Welcome to the team! You can get more help with Slack here: https://get.slack.help/\n')  # noqa: 501
-        target.write('talk-to-pantherbot')
-        target.close()
-    target = io.open(fullDir, "r")
-    if target.readline().rstrip('\n') == "True":
-        SLACK = True
-    if target.readline().rstrip('\n') == "True":
-        GOOGLECAL = True
-    if target.readline().rstrip('\n') == "True":
-        LOGGER = True
-    GOOGLECALSECRET = target.readline().rstrip('\n')
-    if target.readline().rstrip('\n') == "True":
-        NEWUSERGREETING = True
-    GREETING = target.readline().rstrip('\n')
-    TTPB = target.readline().rstrip('\n')
-    target.close()
-
-    # initialize basic logging to see errors more easily
-    if LOGGER:
-        logger = logging.getLogger('root')
-        FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-        logging.basicConfig(format=FORMAT)
-        logger.setLevel(logging.DEBUG)
-
-    # Toggleable, if you're not testing the Google Calendar API implementation or using this in a live environment that uses it, saves loading time and memory space.  # noqa: 501
-    if GOOGLECAL:
-        # Google API stuff
-        # SOOOOO... Google doesnt like us using a newer version of oauth2, might have to downgrade when we put this on the Pi officially  # noqa: 501
-        print "PantherBot:LOG:Starting Google API Authentication..."
-        scopes = ['https://www.googleapis.com/auth/calendar']
-
-        secret_location = os.path.dirname(__file__)
-        secret_fullDir = os.path.join(secret_location, 'secrets')
-        secret_fullDir = os.path.join(secret_fullDir, GOOGLECALSECRET)
-
-        print "PantherBot:LOG:Searching for Google Credentials"
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            secret_fullDir, scopes=scopes)
-
-        print "PantherBot:LOG:Authenticating..."
-        google_http_auth = credentials.authorize(Http())
-
-        calendar_obj = build('calendar', 'v3', http=google_http_auth)
-        print "PantherBot:LOG:Authentication Successful. Should consider enabling debug to view OAuth message. Starting PantherBot"  # noqa: 501
-        # print calendar.calendarList().list().execute()
-    else:
-        print "PantherBot:LOG:Google Calendar API not enabled, edit the `GOOGLECAL` variable to enable it. See Google Calendar Python API documentation about Google API Service Accounts on how to authenticate. Store your secret in the /secrets/ folder and edit the `GOOGLECALSECRET` variable with the file name"  # noqa: 501
-
-    # If for some reason you need to debug without connecting to the Slack RTM API... this is for you.  # noqa: 501
-    if SLACK:
-        while True:
-            try:
-                t = ""
-                # Get Token from secrets folder
-                try:
-                    filename = "secrets/slack_secret.txt"
-                    script_dir = os.path.dirname(__file__)
-                    fullDir = os.path.join(script_dir, filename)
-                    target = io.open(fullDir, "r")
-                    t = target.readline().rstrip("\n")
-                except:
-                    print "PantherBot:LOG:Cannot find Slack token"
-                # initiates the SlackClient connection and Cleverbot API
-                sc = SlackClient(t)
-
-                # initiates connection to the server based on the token
-                print "PantherBot:LOG:Starting RTM connection"
-                bot_conn = sc.api_call(
-                    "rtm.start",
-                    token = t   # noqa:
-                )
-
-                # Update current USER_LIST (since members may join while PantherBot is off, I think its safe to make an API call every initial run)  # noqa: 501
-                USER_LIST = sc.api_call(
-                    "users.list"
-                )
-
-                polling_list = {}
-                pub_channels = sc.api_call(
-                    "channels.list",
-                    exclude_archived=1
-                )
-                pri_channels = sc.api_call(
-                    "groups.list",
-                    exclude_archived=1
-                )
-                for c in pub_channels["channels"]:
-                    polling_list[c["id"]] = ["",[],"none"]
-                for c in pri_channels["groups"]:
-                    polling_list[c["id"]] = ["",[],"none"]
-
-                # Update current General Channel (usually announcements)
-                li = channel_to_id(["announcements"])
-                if not li:
-                    li = channel_to_id(["general"])
-                try:
-                    GENERAL = li[0]
-                except:
-                    pass
-
-                # creates WebSocketApp based on the wss returned by the RTM API
-                print "PantherBot:LOG:Starting WebSocketApplication and connection"  # noqa: 501
-                ws = websocket.WebSocketApp(bot_conn["url"],
-                                        on_message=on_message,  # noqa
-                                        on_error=on_error,  # noqa
-                                        on_close=on_close)  # noqa:
-
-                ws.run_forever(ping_interval=30, ping_timeout=10)
-                time.sleep(10)
-                print "PantherBot:LOG:Attempting to reconnect"
-            except:
-                print "PantherBot:LOG:Attempting to reconnect"
-                time.sleep(10)
-    else:
-        print "PantherBot:LOG:Slack connection disabled... why?"
+    def emoji_reaction(self, channel, ts, emoji):
+        self.SLACK_CLIENT.api_call(
+            "reactions.add",
+            name=emoji,
+            channel=channel,
+            timestamp=ts
+        )
+        print "PantherBot:LOG:Reaction posted"
