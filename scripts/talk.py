@@ -3,12 +3,9 @@
 
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
-<<<<<<< HEAD
-=======
 import sys
 from response import Response
 
->>>>>>> 6173d0e1681d8246bdb8e6df68ccfcd4623f69d8
 def talk(response, args=[]):
     response_obj = Response(sys.modules[__name__])
     cb = ChatBot('PantherBot')
