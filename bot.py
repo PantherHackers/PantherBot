@@ -26,7 +26,7 @@ import scripts
 from scripts import commands
 
 class Bot(object):
-    admin_env_string = os.environ('PB_ADMIN')
+    admin_env_string = os.environ['PB_ADMIN']
     ADMIN = admin_env_string.split(',')
     EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
     GENERAL_CHANNEL = ""
