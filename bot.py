@@ -21,7 +21,7 @@ Attributes:
 """
 
 from slackclient import SlackClient
-import threading, websocket, json, re, time, codecs, random, logtofile, os
+import threading, websocket, json, re, time, codecs, random, os
 import scripts
 from scripts import commands
 
