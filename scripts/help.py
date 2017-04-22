@@ -33,3 +33,6 @@ def help(response):
     response_obj.messages_to_send.append(text)
     response_obj.messages_to_send.append(motext)
     return response_obj
+
+def is_admin_command():
+    return False

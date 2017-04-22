@@ -4,8 +4,12 @@ import praw
 import sys
 from response import Response
 
-def pugbomb(response, args):
+def pugbomb(response, pb_cooldown, args):
     response_obj = Response(sys.modules[__name__])
+    if pb_cooldown is False:
+        response_obj.messages_to_send.append("Sorry, pugbomb is on cooldown.")
+        return response_obj
+
     try:
         num = round(int(args[0]))
     except:
@@ -36,19 +40,25 @@ def pugbomb(response, args):
         `Having issues viewing pugs? Try Preferences > Messages > 'Even if theyre larger than 2MB'`
         """)  
     response_obj.messages_to_send = pug_urls
+    response_obj.special_condition = True
     return response_obj
 
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])
     if error_code is -1:
         response_obj.messages_to_send.append("Sorry, you didn't enter a number!")
+    elif error_code is -2:
+        response_obj.messages_to_send.append("Sorry, I can't give you negative pugs.")
     else:
-        response_obj.messages_to_send.append("An unknown error occured. Error code: " + error_code)
-    response_obj.special_condition = True
+        response_obj.messages_to_send.append("An unknown error occured. Error code: " + str(error_code))
     return response_obj
 
 def set_cooldown(bot):
-    bot.pb_cooldown = True
+    if bot.pb_cooldown is True:
+        bot.pb_cooldown = False
 
 def special_condition(bot):
     set_cooldown(bot)
+
+def is_admin_command():
+    return False
