@@ -20,7 +20,7 @@ Attributes:
 """
 
 from slackclient import SlackClient
-import threading, websocket, json, re, time, codecs, random, logtofile, datetime
+import threading, websocket, json, re, time, codecs, random
 import scripts
 from bot import Bot
 from scripts import commands
@@ -318,7 +318,7 @@ class ReactBot(Bot):
     def react_announcement(self, message_json):
         if self.GENERAL_CHANNEL != "" and message_json["channel"] == self.GENERAL_CHANNEL:
             temp_list = list(self.EMOJI_LIST)
-            Bot.emoji_reaction(self, message_json, "pantherbot")
+            Bot.emoji_reaction(self, message_json["channel"], message_json["ts"], "pantherbot")
             for x in range(0, 3):
                 num = random.randrange(0, len(temp_list))
                 Bot.emoji_reaction(self, message_json["channel"], message_json["ts"], temp_list.pop(num))

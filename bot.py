@@ -21,7 +21,7 @@ Attributes:
 """
 
 from slackclient import SlackClient
-import threading, websocket, json, re, time, codecs, random, logtofile, os, datetime
+import threading, websocket, json, re, time, codecs, random, os
 import scripts
 from scripts import commands
 
@@ -29,7 +29,7 @@ from scripts import commands
 from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String
 
 class Bot(object):
-    admin_env_string = os.environ('PB_ADMIN')
+    admin_env_string = os.environ['PB_ADMIN']
     ADMIN = admin_env_string.split(',')
     EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
     GENERAL_CHANNEL = ""
