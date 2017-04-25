@@ -24,11 +24,13 @@ import threading, websocket, json, re, time, codecs, random
 import scripts
 from bot import Bot
 from scripts import commands
+from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String
 
 class ReactBot(Bot):
     def __init__(self, token, bot_name=""):
         super(ReactBot, self).__init__(token, bot_name)
         self.connect_to_slack(token)
+        self.setup_tables()
 
     def connect_to_slack(self, token):
         # Initiates connection to the server based on the token, receives websocket URL "bot_conn"
@@ -93,6 +95,9 @@ class ReactBot(Bot):
         s = message.decode('utf-8')
         message_json = json.loads(unicode(s))
         print "PantherBot:LOG:message:" + message_json["type"]
+        
+        #Logging event before execution
+        self.log_event(message_json)
         
         if "message" == message_json["type"]:
             if "subtype" in message_json:
@@ -317,6 +322,106 @@ class ReactBot(Bot):
             for x in range(0, 3):
                 num = random.randrange(0, len(temp_list))
                 Bot.emoji_reaction(self, message_json["channel"], message_json["ts"], temp_list.pop(num))
+
+    def log_event(self, response):
+        def add_user(r, team_join=False):
+            users_with_this_slack_id = self.ENGINE.execute("SELECT last_name FROM users WHERE slack_id=%s", r["user"])
+            if users_with_this_slack_id.fetchall() == []:
+                r = self.SLACK_CLIENT.api_call(
+                    "users.info",
+                    user=r["user"]
+                    )
+                is_admin = r["user"]["is_admin"]
+                if is_admin:
+                    is_admin = 1
+                else:
+                    is_admin = 0
+                if team_join==True:
+                    self.ENGINE.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin, team_join) VALUES (%s, %s, %s, "+str(is_admin)+", 0, CURDATE())", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+                else:
+                    self.ENGINE.execute("INSERT INTO users (slack_id, first_name, last_name, is_admin, is_pb_admin) VALUES (%s, %s, %s, "+str(is_admin)+", 0)", r["user"]["id"], r["user"]["profile"]["first_name"], r["user"]["profile"]["last_name"])
+
+        def add_channel(r):
+            if r.has_key("channel"):
+                q = self.ENGINE.execute("SELECT name FROM channels WHERE slack_id=%s", r["channel"])
+            else:
+                q = self.ENGINE.execute("SELECT name FROM channels WHERE slack_id=%s", r["item"]["channel"])
+            if q.fetchall() == []:
+                r = self.SLACK_CLIENT.api_call(
+                        "channels.info",
+                        channel=r["channel"]
+                    )
+                self.ENGINE.execute("INSERT INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, %s, 0, 1)", r["channel"]["id"], r["channel"]["name"])
+
+        if response["type"] == "message":
+            add_user(response)
+            add_channel(response)
+            self.ENGINE.execute("INSERT IGNORE INTO commentActivity (from_user_id, to_channel_id, comment_count) VALUES (%s, %s, 0)", response["user"], response["channel"])
+            self.ENGINE.execute("UPDATE commentActivity SET comment_count = comment_count+1 WHERE from_user_id = %s and to_channel_id = %s", response["user"], response["channel"])
+            now = datetime.datetime.now()
+            self.ENGINE.execute("INSERT INTO channelActivity (channel_id, hour, week_day, day_of_month, month, year) VALUES (%s, %s, %s, %s, %s, %s)", response["channel"], now.hour, now.strftime("%a")[:2], now.day, now.month, now.year)
+            return
+            
+        if response["type"] == "team_join":
+            add_user(response, team_join=True)
+            return
+        
+        if response["type"] == "reaction_added":
+            if response["item"]["type"] == "message":
+                reaction = response["reaction"]
+                if len(reaction) > 60:
+                    reaction = reaction[:60]
+                add_user(response)
+                add_channel(response)
+                self.ENGINE.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES (%s, 0)", reaction)
+                self.ENGINE.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES(%s, %s, %s, %s, 0)", response["user"], response["item_user"], response["item"]["channel"], reaction)
+                self.ENGINE.execute("UPDATE emojiActivity SET given_count = given_count+1 WHERE from_user_id = %s and to_user_id = %s and in_channel_id = %s and emoji_name = %s", response["user"], response["item_user"], response["item"]["channel"], reaction)
+            return
+
+        if response["type"] == "reaction_removed":
+            if response["item"]["type"] == "message":
+                reaction = response["reaction"]
+                if len(reaction) > 60:
+                    reaction = reaction[:60]
+                add_user(response)
+                add_channel(response)
+                self.ENGINE.execute("INSERT IGNORE INTO emojis (name, is_custom) VALUES (%s, 0)", reaction)
+                self.ENGINE.execute("INSERT IGNORE INTO emojiActivity (from_user_id, to_user_id, in_channel_id, emoji_name, given_count) VALUES(%s, %s, %s, %s, 0)", response["user"], response["item_user"], response["item"]["channel"], reaction)
+                self.ENGINE.execute("UPDATE emojiActivity SET given_count = given_count-1 WHERE from_user_id = %s and to_user_id = %s and in_channel_id = %s and emoji_name = %s", response["user"], response["item_user"], response["item"]["channel"], reaction)
+            return
+
+        if response["type"] == "channel_created":
+            self.ENGINE.execute("INSERT IGNORE INTO channels (slack_id, name, is_productive, is_active) VALUES (%s, %s, 0, 1)", response["channel"]["id"], response["channel"]["name"])
+            return
+
+        if response["type"] == "channel_archive":
+            add_channel(response)
+            self.ENGINE.execute("UPDATE channels SET is_active = 0 WHERE slack_id = %s", response["channel"])
+            return
+
+        if response["type"] == "channel_unarchive":
+            add_channel(response)
+            self.ENGINE.execute("UPDATE channels SET is_active = 1 WHERE slack_id = %s", response["channel"])
+            return
+
+    def setup_tables(self):
+        try:
+            print 'PantherBot:LOG:Attempting to connect to database'
+            self.ENGINE.connect()
+        except Exception:
+            print 'PantherBot:LOG:Could not find database'
+            print 'PantherBot:LOG:Creating database'
+            self.ENGINE = create_engine('mysql://root@localhost:3306')
+            self.ENGINE.execute("CREATE DATABASE pantherbot_test")
+            self.ENGINE.execute("USE pantherbot_test")
+            self.ENGINE.execute("CREATE TABLE channels(slack_id VARCHAR(9), name VARCHAR (50), is_productive TINYINT, is_active TINYINT, PRIMARY KEY (slack_id))")
+            self.ENGINE.execute("CREATE TABLE users(slack_id VARCHAR(9), first_name VARCHAR(40), last_name VARCHAR(40), join_date DATETIME, is_admin TINYINT, is_pb_admin TINYINT, PRIMARY KEY (slack_id))")
+            self.ENGINE.execute("CREATE TABLE emojis(name VARCHAR(60), is_custom TINYINT, PRIMARY KEY (name))")
+            self.ENGINE.execute("CREATE TABLE commentActivity(from_user_id VARCHAR(9), to_channel_id VARCHAR(9), comment_count INTEGER, PRIMARY KEY (from_user_id, to_channel_id), FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_channel_id) REFERENCES channels (slack_id))")
+            self.ENGINE.execute("CREATE TABLE emojiActivity(from_user_id VARCHAR(9), to_user_id VARCHAR(9), in_channel_id VARCHAR(9), emoji_name VARCHAR(60), given_count INTEGER, PRIMARY KEY (from_user_id, to_user_id, in_channel_id, emoji_name),  FOREIGN KEY (from_user_id) REFERENCES users (slack_id), FOREIGN KEY (to_user_id) REFERENCES users (slack_id), FOREIGN KEY (in_channel_id) REFERENCES channels (slack_id))")    
+            self.ENGINE.execute("CREATE TABLE channelActivity(channel_id VARCHAR(9), hour TINYINT, week_day VARCHAR(2), day_of_month TINYINT, month TINYINT, year SMALLINT, FOREIGN KEY (channel_id) REFERENCES channels (slack_id))")
+        finally:
+            print 'PantherBot:LOG:Connected to database'
 
     def riyans_denial(self, message_json):
         if "U0LJJ7413" in message_json["user"]:

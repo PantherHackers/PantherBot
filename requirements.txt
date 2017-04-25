@@ -7,3 +7,5 @@ websocket-client
 chatterbot
 pyaml
 praw
+pandas
+sqlalchemy

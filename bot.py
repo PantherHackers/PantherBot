@@ -25,6 +25,9 @@ import threading, websocket, json, re, time, codecs, random, os
 import scripts
 from scripts import commands
 
+#SQLAlchemy imports
+from sqlalchemy import create_engine, MetaData, Column, Table, ForeignKey, Integer, String
+
 class Bot(object):
     admin_env_string = os.environ['PB_ADMIN']
     ADMIN = admin_env_string.split(',')
@@ -32,6 +35,7 @@ class Bot(object):
     GENERAL_CHANNEL = ""
     TTPB = "talk-to-pantherbot"
     VERSION = "2.0.0"
+    
 
     def __init__(self, token, bot_name=""):
         self.SLACK_CLIENT = None
@@ -42,7 +46,10 @@ class Bot(object):
         self.WEBSOCKET = None
         self.THREADS = []
         self.pb_cooldown = True
+        self.ENGINE = create_engine('mysql://{}:{}@{}'.format(os.environ["DB_USERNAME"], os.environ["DB_PASSWORD"], os.environ["DB_CONNECTION_STRING"]), echo=False)
+        self.METADATA = MetaData(bind=self.ENGINE)
         self.create_slack_client(token)
+        self.setup_tables()
 
     def create_slack_client(self, token):
     	self.SLACK_CLIENT = SlackClient(token)
