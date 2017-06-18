@@ -25,9 +25,26 @@ import threading, websocket, json, re, time, codecs, random, os
 import scripts
 from scripts import commands
 
+import logging
+
 class Bot(object):
-    admin_env_string = os.environ['PB_ADMIN']
-    ADMIN = admin_env_string.split(',')
+    # admin_env_string = os.environ['PB_ADMIN']
+    # ADMIN = admin_env_string.split(',')
+
+    # See here for logging documentation https://docs.python.org/2/howto/logging.html
+    # Set the name for the logger
+    logger = logging.getLogger('PantherBot')
+    logger.setLevel(logging.INFO)
+
+    # Set up console stream handler
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    consoleHandler.setFormatter(formatter)
+
+    # Add handler to logger
+    logger.addHandler(consoleHandler)
+
     EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
     GENERAL_CHANNEL = ""
     TTPB = "talk-to-pantherbot"

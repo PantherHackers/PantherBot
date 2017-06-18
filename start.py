@@ -2,8 +2,24 @@ import threading, time, logging, os, sys, codecs
 from bot import Bot
 from reactbot import ReactBot
 
+import logging
+
 if __name__ == "__main__":
-    print "PantherBot:LOG:Beginning Execution... Setting up"
+    # See here for logging documentation https://docs.python.org/2/howto/logging.html
+    # Set the name for the logger
+    logger = logging.getLogger('PantherBot')
+    logger.setLevel(logging.INFO)
+
+    # Set up console stream handler
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    ch.setFormatter(formatter)
+
+    # Add handler to logger
+    logger.addHandler(ch)
+
+    logger.info("Beginning Execution... Setting up")
 
     # Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)  # noqa: 501
     if sys.stdout.encoding != 'utf-8':
@@ -11,16 +27,9 @@ if __name__ == "__main__":
     if sys.stderr.encoding != 'utf-8':
         sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'strict')
 
-    # Initialize logger functionality to read errors more easily from the terminal
-    # This is due to WebSockets requiring outside logging methods 
-    logger = logging.getLogger('root')
-    FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-    logging.basicConfig(format=FORMAT)
-    logger.setLevel(logging.DEBUG)
-
     # Initializes our primary bot
     # This is the reactive bot known as "PantherBot," and is responsible for all message detection and immediate reactions
-    print "PantherBot:LOG:Initializing bot"
+    logger.info("Initializing bot")
     token = os.environ.get('PB_TOKEN')
 
     # List of all bots running in current process.
@@ -28,18 +37,23 @@ if __name__ == "__main__":
     react_bot = ReactBot(token, bot_name="PantherBot")
     BOT_LIST.append(react_bot)
     bot_thread = threading.Thread(target=react_bot.WEBSOCKET.run_forever, kwargs={"ping_interval":30, "ping_timeout":10})
-    print "PantherBot:LOG:Beginning thread"
+    logger.info("Beginning thread")
     bot_thread.start()
 
     proactive_bot = Bot(token, bot_name="PantherBot")
     count_interval = 0
-    while True:
-        time.sleep(600)
-        count_interval += 1
-        for b in BOT_LIST:
-            if b.WEBSOCKET != None:
-                b.pb_cooldown = True
-        if count_interval == 72:
-            proactive_bot.smsg("pantherbot-dev", "Check-in")
-            count_interval = 0
-        print "PantherBot:LOG:Proactive still alive"
+
+    application_status = True
+    while application_status:
+        try:
+            time.sleep(600)
+            count_interval += 1
+            for b in BOT_LIST:
+                if b.WEBSOCKET != None:
+                    b.pb_cooldown = True
+            if count_interval == 72:
+                proactive_bot.smsg("pantherbot-dev", "Check-in")
+                count_interval = 0
+            logger.info("Proactive still alive")
+        except KeyboardInterrupt:
+            application_status = False
