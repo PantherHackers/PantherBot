@@ -35,6 +35,7 @@ class ReactBot(Bot):
 
     def __init__(self, token, bot_name=""):
         super(ReactBot, self).__init__(token, bot_name)
+
         self.connect_to_slack(token)
 
     def connect_to_slack(self, token):
@@ -115,6 +116,9 @@ class ReactBot(Bot):
 
         
         if "message" == message_json["type"]:
+            if "text" in message_json:
+                message_array = message_json["text"].split()
+                logger.info(message_json["type"].replace("_", " ").title() + ": " + message_array[0] + "... " + message_array[-1])
             if "subtype" in message_json:
                 if message_json["subtype"] == "bot_message":
                     #polling logic
