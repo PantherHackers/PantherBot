@@ -1,23 +1,19 @@
 import threading, time, logging, os, sys, codecs
+
 from bot import Bot
 from reactbot import ReactBot
 
-import logging
+import log_handler
+from stoppable_thread import StoppableThread
 
 if __name__ == "__main__":
     # See here for logging documentation https://docs.python.org/2/howto/logging.html
+    
     # Set the name for the logger
+    # Add custom log handler to logger
     logger = logging.getLogger('PantherBot')
     logger.setLevel(logging.INFO)
-
-    # Set up console stream handler
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-    ch.setFormatter(formatter)
-
-    # Add handler to logger
-    logger.addHandler(ch)
+    logger.addHandler(log_handler.PBLogHandler())
 
     logger.info("Beginning Execution... Setting up")
 
@@ -36,7 +32,7 @@ if __name__ == "__main__":
     BOT_LIST = []
     react_bot = ReactBot(token, bot_name="PantherBot")
     BOT_LIST.append(react_bot)
-    bot_thread = threading.Thread(target=react_bot.WEBSOCKET.run_forever, kwargs={"ping_interval":30, "ping_timeout":10})
+    bot_thread = StoppableThread(websocket=react_bot.WEBSOCKET, kwargs={"ping_interval":30, "ping_timeout":10})
     logger.info("Beginning thread")
     bot_thread.start()
 
@@ -56,4 +52,7 @@ if __name__ == "__main__":
                 count_interval = 0
             logger.info("Proactive still alive")
         except KeyboardInterrupt:
-            application_status = False
+            print "interrupted"
+            bot_thread.stop()
+            break
+        print "lel" 

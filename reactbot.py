@@ -20,30 +20,35 @@ Attributes:
 """
 
 from slackclient import SlackClient
-import threading, websocket, json, re, time, codecs, random
+import threading, websocket, json, re, time, codecs, random, logging
 import scripts
 from bot import Bot
 from scripts import commands
+import log_handler
+
+logger = logging.getLogger("PantherBot")
+logger.setLevel(logging.INFO)
 
 class ReactBot(Bot):
     def __init__(self, token, bot_name=""):
         super(ReactBot, self).__init__(token, bot_name)
+
         self.connect_to_slack(token)
 
     def connect_to_slack(self, token):
         # Initiates connection to the server based on the token, receives websocket URL "bot_conn"
-        print "PantherBot:LOG:Starting RTM connection"
+        logger.info("Starting RTM connection")
         bot_conn = self.SLACK_CLIENT.api_call(
             "rtm.start",
             token = token
         )
 
-        print "PantherBot:LOG:Initializing info"
+        logger.info("Initializing info")
         self.initialize_info()
 
         # Creates WebSocketApp based on the URL returned by the RTM API
         # Assigns local methods to websocket methods
-        print "PantherBot:LOG:Initializing WebSocketApplication"
+        logger.info("Initializing WebSocketApplication")
         self.WEBSOCKET = websocket.WebSocketApp(bot_conn["url"],
                                 on_message=self.on_message,
                                 on_error=self.on_error,
@@ -81,7 +86,7 @@ class ReactBot(Bot):
             if Bot.GENERAL_CHANNEL is "":
                 Bot.GENERAL_CHANNEL = temp_list_of_channels[0]
         except:
-            print "PantherBot:LOG:The #general channel has been renamed to a non-default value"
+            logger.info("The #general channel has been renamed to a non-default value")
 
     def on_message(self, ws, message):
         message_thread = threading.Thread(target=self.on_message_thread, args=(message,))
@@ -92,9 +97,12 @@ class ReactBot(Bot):
     def on_message_thread(self, message):
         s = message.decode('utf-8')
         message_json = json.loads(unicode(s))
-        print "PantherBot:LOG:message:" + message_json["type"]
+        logger.info(message_json["type"].replace("_"," ").title())
         
         if "message" == message_json["type"]:
+            if "text" in message_json:
+                message_array = message_json["text"].split()
+                logger.info(message_json["type"].replace("_", " ").title() + ": " + message_array[0] + "... " + message_array[-1])
             if "subtype" in message_json:
                 if message_json["subtype"] == "bot_message":
                     #polling logic
@@ -138,7 +146,7 @@ class ReactBot(Bot):
                 username=self.BOT_NAME,
                 icon_url=self.BOT_ICON_URL
             )
-            print "PantherBot:LOG:Message sent"
+            logger.info("Message sent")
 
     # Command Messages are messages that begin with the `!` prefix
     # Returns True if a message_json or trigger was used in this method
@@ -253,8 +261,6 @@ class ReactBot(Bot):
                     return True
 
                 if message_json["user"] not in self.ADMIN:
-                    print message_json["user"]
-                    print self.ADMIN
                     self.response_message(message_json, ["You don't seem to be an authorized user to use these commands."])
                     return True
 
@@ -289,7 +295,7 @@ class ReactBot(Bot):
                     "users.info",
                     user = message_json["user"]
                 )
-                print "PantherBot:LOG:Greeting:We did it reddit"
+                logger.info("Greeting:We did it reddit")
                 self.response_message(message_json, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
                 return True
             elif message_json["text"].lower() == "pantherbot ping":
@@ -307,7 +313,7 @@ class ReactBot(Bot):
                     return True
             return False
         except:
-            print "Error with checking in other_message: likely the message contained unicode characters"
+            logger.info("Error with checking in other_message: likely the message contained unicode characters")
 
     # Reacts to all messages posted in the GENERAL channel with a pre-defined list of emojis
     def react_announcement(self, message_json):
