@@ -29,15 +29,16 @@ from scripts import commands
 import log_handler
 import logging 
 
+logger = logging.getLogger('Bot')
+logger.setLevel(logging.INFO)
+logger.addHandler(log_handler.PBLogHandler())    
+
 class Bot(object):
     # admin_env_string = os.environ['PB_ADMIN']
     # ADMIN = admin_env_string.split(',')
 
     # Set the name for the logger
     # Add custom log handler to logger
-    logger = logging.getLogger('PantherBot')
-    logger.setLevel(logging.INFO)
-    # logger.addHandler(log_handler.PBLogHandler())
 
     EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
     GENERAL_CHANNEL = ""
@@ -103,4 +104,7 @@ class Bot(object):
             channel=channel,
             timestamp=ts
         )
-        print "Reaction posted"
+        logger.info("Reaction posted")
+
+    def close(self):
+        self.WEBSOCKET.keep_running = False

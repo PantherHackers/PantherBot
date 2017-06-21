@@ -32,15 +32,14 @@ if __name__ == "__main__":
     BOT_LIST = []
     react_bot = ReactBot(token, bot_name="PantherBot")
     BOT_LIST.append(react_bot)
-    bot_thread = StoppableThread(websocket=react_bot.WEBSOCKET, kwargs={"ping_interval":30, "ping_timeout":10})
+    bot_thread = threading.Thread(target=react_bot.WEBSOCKET.run_forever, kwargs={"ping_interval":30, "ping_timeout":10})
     logger.info("Beginning thread")
     bot_thread.start()
 
     proactive_bot = Bot(token, bot_name="PantherBot")
     count_interval = 0
 
-    application_status = True
-    while application_status:
+    while True:
         try:
             time.sleep(600)
             count_interval += 1
@@ -52,7 +51,7 @@ if __name__ == "__main__":
                 count_interval = 0
             logger.info("Proactive still alive")
         except KeyboardInterrupt:
-            print "interrupted"
-            bot_thread.stop()
+            logger.info("Keyboard Interrupt")
+            react_bot.close()
+            # bot_thread.stop()
             break
-        print "lel" 

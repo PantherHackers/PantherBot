@@ -26,13 +26,18 @@ from bot import Bot
 from scripts import commands
 import log_handler
 
-logger = logging.getLogger("PantherBot")
+logger = logging.getLogger('ReactBot')
 logger.setLevel(logging.INFO)
+logger.addHandler(log_handler.PBLogHandler())
+
 
 class ReactBot(Bot):
+
+    # Set the name for the logger
+    # Add custom log handler to logger
+
     def __init__(self, token, bot_name=""):
         super(ReactBot, self).__init__(token, bot_name)
-
         self.connect_to_slack(token)
 
     def connect_to_slack(self, token):
@@ -100,7 +105,7 @@ class ReactBot(Bot):
         logger.info(message_json["type"].replace("_"," ").title())
         
         if "message" == message_json["type"]:
-            if "text" in message_json:
+            if "text" in message_json and message_json["subtype"] != "bot_message":
                 message_array = message_json["text"].split()
                 logger.info(message_json["type"].replace("_", " ").title() + ": " + message_array[0] + "... " + message_array[-1])
             if "subtype" in message_json:
