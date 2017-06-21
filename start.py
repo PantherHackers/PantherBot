@@ -29,7 +29,7 @@ if __name__ == "__main__":
     BOT_LIST = []
     react_bot = ReactBot(token, bot_name="PantherBot")
     BOT_LIST.append(react_bot)
-    bot_thread = StoppableThread(websocket=react_bot.WEBSOCKET, kwargs={"ping_interval":30, "ping_timeout":10})
+    bot_thread = threading.Thread(target=react_bot.WEBSOCKET.run_forever, kwargs={"ping_interval":30, "ping_timeout":10})
     logger.info("Beginning thread")
     bot_thread.start()
 
