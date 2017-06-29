@@ -83,19 +83,20 @@ class Bot(object):
 
     # Send Message
     # Sends a message to the specified channel (looks up by channel name, unless is_id is True)
-    def send_msg(self, channel, text, is_id=False):
-        if is_id:
-            channel_id = channel
-        else:
-            channel_id = self.channels_to_ids([channel])[0]
-        self.SLACK_CLIENT.api_call(
-            "chat.postMessage",
-            channel=channel_id,
-            text=text,
-            username=self.BOT_NAME,
-            icon_url=self.BOT_ICON_URL
-        )
-        logger.info("Message sent")
+    # def send_msg(self, channel, text, is_id=False):
+    #     if is_id:
+    #         channel_id = channel
+    #     else:
+    #         channel_id = self.channels_to_ids([channel])[0]
+    #     self.SLACK_CLIENT.api_call(
+    #         "chat.postMessage",
+    #         channel=channel_id,
+    #         text=text,
+    #         username=self.BOT_NAME,
+    #         icon_url=self.BOT_ICON_URL
+    #     )
+    #     logger.info(text)
+    #     logger.info("Message sent: ")
 
     def emoji_reaction(self, channel, ts, emoji):
         self.SLACK_CLIENT.api_call(
@@ -104,7 +105,8 @@ class Bot(object):
             channel=channel,
             timestamp=ts
         )
-        logger.info("Reaction posted")
+        logger.info("Reaction posted: " + emoji)
 
     def close(self):
         self.WEBSOCKET.keep_running = False
+        logger.info("Closing Websocket...")

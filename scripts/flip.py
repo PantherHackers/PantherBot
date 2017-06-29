@@ -20,7 +20,7 @@ def flip(response, args=[]):
         flippedmsg = upsidedown.transform(toFlip)
         response_obj.messages_to_send.append(donger + flippedmsg)
     except Exception as e:
-        print "PantherBot:Log:Flip:Error in flip: " + str(e)
+        logger.info("[Flip] " + str(e))
         response_obj.status_code = -1
     return response_obj
 
