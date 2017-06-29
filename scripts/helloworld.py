@@ -6,15 +6,16 @@
 import sys
 from response import Response
 
-# Import this so that you can use the logger functions
-# so that you can logg things
+# Import these so that you can use the logger functions
+# so that you can log things
+import logging
 import log_handler
 
 # If you need to print something that will be used for official logging purposes
 # use this logger class using the custom handler PBHandler from the log_handler class
 logger = logging.getLogger('PantherBot')
 logger.setLevel(logging.INFO)
-logger.addHandler(log_handler.PBHandler())
+logger.addHandler(log_handler.PBLogHandler())
 
 # Name your file with the title of your method, both of which should be all lowercase.
 def helloworld(response, args=None):  # response is always given to you, good for checking on user info or something unique to a message object, args is optional, or if your function may not take args, set it to None or [] depending on your needs
