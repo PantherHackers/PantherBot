@@ -115,9 +115,9 @@ class ReactBot(Bot):
 
         
         if "message" == message_json["type"]:
-            if "text" in message_json and message_json["subtype"] != "bot_message":
-                message_array = message_json["text"].split()
-                logger.info(message_json["type"].replace("_", " ").title() + ": " + message_array[0] + "... " + message_array[-1])
+            # if "text" in message_json and "bot_message" not in message_json["subtype"]  :
+            #     message_array = message_json["text"].split()
+            #     logger.info(message_json["type"].replace("_", " ").title() + ": " + message_array[0] + "... ")
             if "subtype" in message_json:
                 if message_json["subtype"] == "bot_message":
                     #polling logic
