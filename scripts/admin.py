@@ -15,7 +15,7 @@ def admin(message_json, args, sc, bot, rmsg):
 
 # Temporary function to add Admins for testing purposes
 def admin_add(message_json, args, sc, bot, rmsg):
-    print "Adding user to admin list temporarily"
+    logger.info("[Admin] Adding user to admin list temporarily")
     for id in args:
         bot.ADMIN.append(id)
         rmsg(message_json, ["User ID " + id + " has been temporarily added to the admin list"])

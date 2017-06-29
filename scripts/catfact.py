@@ -13,7 +13,7 @@ def catfact(response):
     if "true" in parsed_wbc["success"]:
         response_obj.messages_to_send.append(parsed_wbc["facts"][0])
     else:
-        print "PantherBot:Log:CatFact:Error in catfacts"
+        logger.error("[CatFact] Error in catfacts") 
         response_obj.status_code = -1
     return response_obj
 

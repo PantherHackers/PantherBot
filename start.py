@@ -4,7 +4,6 @@ from bot import Bot
 from reactbot import ReactBot
 
 import log_handler
-from stoppable_thread import StoppableThread
 
 if __name__ == "__main__":
     # See here for logging documentation https://docs.python.org/2/howto/logging.html
@@ -53,5 +52,4 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             logger.info("Keyboard Interrupt")
             react_bot.close()
-            # bot_thread.stop()
             break

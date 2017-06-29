@@ -30,7 +30,6 @@ logger = logging.getLogger('ReactBot')
 logger.setLevel(logging.INFO)
 logger.addHandler(log_handler.PBLogHandler())
 
-
 class ReactBot(Bot):
 
     # Set the name for the logger
@@ -105,9 +104,9 @@ class ReactBot(Bot):
         logger.info(message_json["type"].replace("_"," ").title())
         
         if "message" == message_json["type"]:
-            if "text" in message_json and message_json["subtype"] != "bot_message":
-                message_array = message_json["text"].split()
-                logger.info(message_json["type"].replace("_", " ").title() + ": " + message_array[0] + "... " + message_array[-1])
+            # if "text" in message_json and "bot_message" not in message_json["subtype"]  :
+            #     message_array = message_json["text"].split()
+            #     logger.info(message_json["type"].replace("_", " ").title() + ": " + message_array[0] + "... ")
             if "subtype" in message_json:
                 if message_json["subtype"] == "bot_message":
                     #polling logic
@@ -196,7 +195,7 @@ class ReactBot(Bot):
 
             if len(args) > 0:
                 method_args.append(args)
-            
+
             # This is in a try statement since it is checking if a module exists with the com_text name,
             # It makes the try statement that was previously around the `called_function` section below much smaller,
             # and also less likely to skip an error that should be printed to the console.
@@ -237,7 +236,7 @@ class ReactBot(Bot):
                 args = message_json["text"].split()
                 com_text = args[0][1:].lower()
                 args.pop(0)
-                
+    
                 # Checks if pattern differs from admin commands
                 # by containing digits or another "$" character
                 if any(i.isdigit() for i in com_text) or ('$' in com_text):
@@ -250,7 +249,7 @@ class ReactBot(Bot):
                 method_args.append(self.SLACK_CLIENT)
                 method_args.append(self)
                 method_args.append(self.response_message)
-                
+
                 # This is in a try statement since it is checking if a module exists with the com_text name,
                 # It makes the try statement that was previously around the `called_function` section below much smaller,
                 # and also less likely to skip an error that should be printed to the console.
@@ -300,7 +299,7 @@ class ReactBot(Bot):
                     "users.info",
                     user = message_json["user"]
                 )
-                logger.info("Greeting:We did it reddit")
+                logger.info("[Greeting] We did it reddit")
                 self.response_message(message_json, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
                 return True
             elif message_json["text"].lower() == "pantherbot ping":

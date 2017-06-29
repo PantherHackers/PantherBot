@@ -19,7 +19,7 @@ def unflip(response, args=[]):
         donger = unicode(donger, "utf-8")
         response_obj.messages_to_send.append(toUnFlip + donger)
     except Exception as e:
-        print "PantherBot:Log:Flip:Error in flip: " + str(e)
+        logger.info("[Flip] Error in flip: " + str(e))
         response_obj.status_code = -1
     return response_obj
 
