@@ -72,7 +72,7 @@ polling_list = dict()
 
 
 # function that is called whenever there is an event, including status changes, join messages, typing status, emoji reactions, everything  # noqa: 501
-def on_message(ws, message):
+    def on_message(ws, message):
 
     s = message.decode('utf-8')
     response = json.loads(unicode(s))
