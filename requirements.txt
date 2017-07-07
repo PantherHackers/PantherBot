@@ -7,3 +7,4 @@ websocket-client
 chatterbot
 pyaml
 praw
+pytest
