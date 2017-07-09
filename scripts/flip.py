@@ -3,6 +3,9 @@
 import upsidedown, sys
 from response import Response
 
+from pb_logging import PBLogger
+logger = PBLogger("Flip")
+
 # flips text using upsidedown module and has a donger for emohasis
 def flip(response, args=[]):
     response_obj = Response(sys.modules[__name__])
@@ -17,10 +20,11 @@ def flip(response, args=[]):
 
     try:
         donger = unicode(donger, "utf-8")
+        logger.info(toFlip[:15 or len(toFlip)] + "...")
         flippedmsg = upsidedown.transform(toFlip)
         response_obj.messages_to_send.append(donger + flippedmsg)
     except Exception as e:
-        logger.info("[Flip] " + str(e))
+        logger.error(str(e))
         response_obj.status_code = -1
     return response_obj
 
