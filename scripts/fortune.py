@@ -13,9 +13,9 @@ def fortune(response):
     try:
         # get fortune
         fortune = urllib2.urlopen("http://www.fortunefortoday.com/getfortuneonly.php").read()  # noqa: 501
-    except:
+    except Exception as e:
         fortune = "Unable to reach Fortune Telling api"
-        logger.error(fortune)
+        logger.error("Unable to reach Fortune Telling API: " + str(e))
 
     # make api call
     response_obj.messages_to_send.append(fortune)

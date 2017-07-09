@@ -17,7 +17,7 @@ def catfact(response):
         response_obj.messages_to_send.append(parsed_wbc["facts"][0])
         
     except Exception as e:
-        logger.error("Error in catfacts") 
+        logger.error("Error in catfacts: " + str(e)) 
         response_obj.status_code = -1
     
     return response_obj   
