@@ -32,8 +32,8 @@ import logging
 logger = PBLogger('Bot')
 
 class Bot(object):
-    admin_env_string = os.environ['PB_ADMIN']
-    ADMIN = admin_env_string.split(',')
+    # admin_env_string = os.environ['PB_ADMIN']
+    # ADMIN = admin_env_string.split(',')
 
     # Set the name for the logger
     # Add custom log handler to logger
