@@ -3,18 +3,16 @@ import threading, time, logging, os, sys, codecs
 from bot import Bot
 from reactbot import ReactBot
 
-import log_handler
+# 
+from pb_logging import PBLogger
 
 if __name__ == "__main__":
     # See here for logging documentation https://docs.python.org/2/howto/logging.html
     
     # Set the name for the logger
     # Add custom log handler to logger
-    logger = logging.getLogger('PantherBot')
-    logger.setLevel(logging.INFO)
-    logger.addHandler(log_handler.PBLogHandler())
-
-    logger.info("Beginning Execution... Setting up")
+    logger = PBLogger('PantherBot')
+    
 
     # Checks if the system's encoding type is utf-8 and changes it to utf-8 if it isnt (its not on Windows by default)  # noqa: 501
     if sys.stdout.encoding != 'utf-8':

@@ -4,7 +4,8 @@ import urllib2
 import sys
 from response import Response
 
-import log_handler
+from pb_logging import PBLogger
+logger = PBLogger("Fortune")
 
 # returns a random "fortune"
 def fortune(response):
@@ -13,8 +14,8 @@ def fortune(response):
         # get fortune
         fortune = urllib2.urlopen("http://www.fortunefortoday.com/getfortuneonly.php").read()  # noqa: 501
     except:
-        fortune = "Unable to reach fortune telling api"
-        logger.error("[Fortune] Error in receiving fortune")
+        fortune = "Unable to reach Fortune Telling api"
+        logger.error(fortune)
 
     # make api call
     response_obj.messages_to_send.append(fortune)

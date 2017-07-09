@@ -26,16 +26,14 @@ import threading, websocket, json, re, time, codecs, random, os
 import scripts
 from scripts import commands
 
-import log_handler
+from pb_logging import PBLogger
 import logging 
 
-logger = logging.getLogger('Bot')
-logger.setLevel(logging.INFO)
-logger.addHandler(log_handler.PBLogHandler())    
+logger = PBLogger('Bot')
 
 class Bot(object):
-    admin_env_string = os.environ['PB_ADMIN']
-    ADMIN = admin_env_string.split(',')
+    # admin_env_string = os.environ['PB_ADMIN']
+    # ADMIN = admin_env_string.split(',')
 
     # Set the name for the logger
     # Add custom log handler to logger
@@ -57,7 +55,7 @@ class Bot(object):
         self.create_slack_client(token)
 
     def create_slack_client(self, token):
-    	self.SLACK_CLIENT = SlackClient(token)
+        self.SLACK_CLIENT = SlackClient(token)
 
     # Returns a list of channel IDs searched for by name
     def channels_to_ids(self, channel_names):
@@ -95,7 +93,6 @@ class Bot(object):
             username=self.BOT_NAME,
             icon_url=self.BOT_ICON_URL
         )
-        logger.info(text)
         logger.info("Message sent: ")
 
     def emoji_reaction(self, channel, ts, emoji):

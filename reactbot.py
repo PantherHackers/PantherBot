@@ -24,11 +24,10 @@ import threading, websocket, json, re, time, codecs, random, logging
 import scripts
 from bot import Bot
 from scripts import commands
-import log_handler
 
-logger = logging.getLogger('ReactBot')
-logger.setLevel(logging.INFO)
-logger.addHandler(log_handler.PBLogHandler())
+from pb_logging import PBLogger
+
+logger = PBLogger('ReactBot')
 
 class ReactBot(Bot):
 
@@ -90,7 +89,7 @@ class ReactBot(Bot):
             if Bot.GENERAL_CHANNEL is "":
                 Bot.GENERAL_CHANNEL = temp_list_of_channels[0]
         except:
-            logger.info("The #general channel has been renamed to a non-default value")
+            logger.warning("The #general channel has been renamed to a non-default value")
 
     def on_message(self, ws, message):
         message_thread = threading.Thread(target=self.on_message_thread, args=(message,))
@@ -101,6 +100,7 @@ class ReactBot(Bot):
     def on_message_thread(self, message):
         s = message.decode('utf-8')
         message_json = json.loads(unicode(s))
+
         logger.info(message_json["type"].replace("_"," ").title())
         
         if "message" == message_json["type"]:
@@ -147,32 +147,33 @@ class ReactBot(Bot):
                 username=self.BOT_NAME,
                 icon_url=self.BOT_ICON_URL
             )
-            logger.info("Message sent")
+            logger.debug("Message sent")
 
     # Command Messages are messages that begin with the `!` prefix
     # Returns True if a message_json or trigger was used in this method
     def command_message(self, message_json):
         # Checks if message starts with an exclamation point, and does the respective task 
-        if message_json["text"][:1] == "!":
+        if message_json["text"].startswith("!"):
             # Checks if the message is longer than a single character
             if len(message_json["text"]) <= 1:
                 return False
 
             # Put all ! command parameters into an array
             args = message_json["text"].split()
-            com_text = args[0][1:].lower()
+            command_string = args[0][1:].lower()
+            
             args.pop(0)  # gets rid of the command
 
             # Checks if pattern differs from command messages
             # by containing digits or another "$" character
-            if any(i.isdigit() for i in com_text) or ('!' in com_text):
+            if not command_string.isalpha():
                 return False
 
-            if com_text == "version":
+            if command_string == "version":
                 self.response_message(message_json, [self.VERSION])
                 return True
 
-            if com_text == "talk":
+            if command_string == "talk":
                 ch = Bot.channels_to_ids(self, [TTPB])
                 c = ch[0]
                 if message_json["channel"] != c:
@@ -183,22 +184,22 @@ class ReactBot(Bot):
             method_args = []
             method_args.append(message_json)
 
-            if com_text == "poll":
+            if command_string == "poll":
                 method_args.append(self.polling_list[message_json["channel"]])
                 method_args.append(self.SLACK_CLIENT)
 
-            if com_text == "pugbomb":
+            if command_string == "pugbomb":
                 method_args.append(self.pb_cooldown)
 
             if len(args) > 0:
                 method_args.append(args)
 
-            # This is in a try statement since it is checking if a module exists with the com_text name,
+            # This is in a try statement since it is checking if a module exists with the command_string name,
             # It makes the try statement that was previously around the `called_function` section below much smaller,
             # and also less likely to skip an error that should be printed to the console.
             try:
                 # Check if the command is an admin command using the script's self-declaration method
-                check_admin_function = getattr(commands[com_text], "is_admin_command")
+                check_admin_function = getattr(commands[command_string], "is_admin_command")
                 if check_admin_function():
                     self.response_message(message_json, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])
                     return True
@@ -208,7 +209,7 @@ class ReactBot(Bot):
                 return True
 
             # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
-            called_function = getattr(commands[com_text], com_text)
+            called_function = getattr(commands[command_string], command_string)
             script_response = called_function(*method_args)
             if script_response.status_code is 0:
                 self.response_message(message_json, script_response.messages_to_send)
@@ -227,16 +228,16 @@ class ReactBot(Bot):
     # Returns True if a message_json or trigger was used in this method
     def admin_message(self, message_json):
         # Repeats above except for admin commands
-        if message_json["text"][:1] == "$":
+        if message_json["text"].startswith("$"):
             # Checks if message is longer than "$"
             if len(message_json["text"]) > 1:
                 args = message_json["text"].split()
-                com_text = args[0][1:].lower()
+                command_string = args[0][1:].lower()
                 args.pop(0)
     
                 # Checks if pattern differs from admin commands
                 # by containing digits or another "$" character
-                if any(i.isdigit() for i in com_text) or ('$' in com_text):
+                if not command_string.isalpha():
                     return False
 
                 # list that contains the message_json and args for all methods
@@ -247,12 +248,12 @@ class ReactBot(Bot):
                 method_args.append(self)
                 method_args.append(self.response_message)
 
-                # This is in a try statement since it is checking if a module exists with the com_text name,
+                # This is in a try statement since it is checking if a module exists with the command_string name,
                 # It makes the try statement that was previously around the `called_function` section below much smaller,
                 # and also less likely to skip an error that should be printed to the console.
                 try:
                     # Check if the command is an admin command using the script's self-declaration method
-                    check_admin_function = getattr(commands[com_text], "is_admin_command")
+                    check_admin_function = getattr(commands[command_string], "is_admin_command")
                     if not check_admin_function():
                         self.response_message(message_json, ["Sorry, normal commands should be used with the `!` prefix (ie `!coin`)"])
                         return True
@@ -266,7 +267,7 @@ class ReactBot(Bot):
                     return True
 
                 # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
-                called_function = getattr(commands[com_text], com_text)
+                called_function = getattr(commands[command_string], command_string)
                 script_response = called_function(*method_args)
                 if script_response.status_code is 0:
                     self.response_message(message_json, script_response.messages_to_send)
@@ -285,36 +286,40 @@ class ReactBot(Bot):
     # Returns True if a message_json or trigger was used in this method
     def other_message(self, message_json):
         # If not an ! or $, checks if it should respond to another message format, like a greeting 
+        message_txt = message_json["text"].lower()
+
         try:
-            if re.match(".*panther +hackers.*", str(message_json["text"].lower())):
+
+
+            if re.match(".*panther +hackers.*", str(message_txt)):
                 self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
                 return True
-            elif message_json["text"].lower() == "hey pantherbot":
+            elif message_txt == "hey pantherbot":
                 # returns user info that said hey
                 # TODO make this use USER_LIST
                 temp_user = self.SLACK_CLIENT.api_call(
                     "users.info",
                     user = message_json["user"]
                 )
-                logger.info("[Greeting] We did it reddit")
+                logger.info("We did it reddit")
                 self.response_message(message_json, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
                 return True
-            elif message_json["text"].lower() == "pantherbot ping":
+
+            elif message_txt == "pantherbot ping":
                 self.response_message(message_json, ["PONG"])
                 return True
-            elif message_json["text"].lower() == ":rip: pantherbot" or message_json["text"].lower() == "rip pantherbot":
+
+            elif message_txt == ":rip: pantherbot" or message_txt == "rip pantherbot":
                 self.response_message(message_json, [":rip:"])
                 return True
-            elif re.match(".*panther +hackers.*", str(message_json["text"].lower())):
-                self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
-                return True
+
             elif "subtype" in message_json:
                 if message_json["subtype"] == "channel_leave" or message_json["subtype"] == "group_leave": 
                     self.response_message(message_json, ["Press F to pay respects"])
                     return True
             return False
         except:
-            logger.info("Error with checking in other_message: likely the message contained unicode characters")
+            logger.error("Error with checking in other_message: likely the message contained unicode characters")
 
     # Reacts to all messages posted in the GENERAL channel with a pre-defined list of emojis
     def react_announcement(self, message_json):

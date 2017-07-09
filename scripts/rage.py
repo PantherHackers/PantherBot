@@ -4,6 +4,9 @@ import upsidedown
 import sys
 from response import Response
 
+from pb_logging import PBLogger
+logger = PBLogger("Rage")
+
 # flips text using upsidedown module and has a donger for emohasis
 def rage(response, args=[]):
     response_obj = Response(sys.modules[__name__])
@@ -17,10 +20,11 @@ def rage(response, args=[]):
 
     try:
         donger = unicode(donger, "utf-8")
+        logger.info(toFlip[:15 or len(toFlip)] + "...")
         flippedmsg = upsidedown.transform(toFlip)
         response_obj.messages_to_send.append(donger + flippedmsg)
     except Exception as e:
-        logger.info("[Rage] Error in flip: " + str(e))
+        logger.error("Error in flip: " + str(e))
         response_obj.messages_to_send.append("Sorry, I can't seem to flip right now, or you gave an invalid argument")
     return response_obj
 
