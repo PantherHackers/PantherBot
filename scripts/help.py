@@ -39,7 +39,7 @@ def run(response):
     return response_obj
 
 def return_alias():
-    alias_list = ["help", "?", "h"]
+    alias_list = ["help", "h"]
     return alias_list
 
 def is_admin_command():

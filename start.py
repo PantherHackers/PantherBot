@@ -45,7 +45,7 @@ if __name__ == "__main__":
                     if b.WEBSOCKET != None:
                         b.pb_cooldown = True
             if count_interval % 1500 is 0:
-                proactive_bot.smsg("pantherbot-dev", "Check-in")
+                proactive_bot.send_msg("pantherbot-dev", "Check-in")
                 logger.info("Proactive still alive")
             if count_interval >= 1500:
                 count_interval = 0
