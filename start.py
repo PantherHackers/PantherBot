@@ -38,15 +38,17 @@ if __name__ == "__main__":
 
     while True:
         try:
-            time.sleep(600)
+            time.sleep(1)
             count_interval += 1
-            for b in BOT_LIST:
-                if b.WEBSOCKET != None:
-                    b.pb_cooldown = True
-            if count_interval == 72:
+            if count_interval % 600 is 0:
+                for b in BOT_LIST:
+                    if b.WEBSOCKET != None:
+                        b.pb_cooldown = True
+            if count_interval % 1500 is 0:
                 proactive_bot.smsg("pantherbot-dev", "Check-in")
+                logger.info("Proactive still alive")
+            if count_interval >= 1500:
                 count_interval = 0
-            logger.info("Proactive still alive")
         except KeyboardInterrupt:
             logger.info("Keyboard Interrupt")
             react_bot.close()
