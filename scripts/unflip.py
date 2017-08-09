@@ -5,7 +5,7 @@ import sys
 from response import Response
 
 #"unflips" text
-def unflip(response, args=[]):
+def run(response, args=[]):
     response_obj = Response(sys.modules[__name__])
     toUnFlip = ''
     for n in range(0, len(args)):
@@ -22,6 +22,10 @@ def unflip(response, args=[]):
         print "PantherBot:Log:Flip:Error in flip: " + str(e)
         response_obj.status_code = -1
     return response_obj
+
+def return_alias():
+    alias_list = ["unflip"]
+    return alias_list
 
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])

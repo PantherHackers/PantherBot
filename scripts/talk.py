@@ -6,7 +6,7 @@ from chatterbot.trainers import ChatterBotCorpusTrainer
 import sys
 from response import Response
 
-def talk(response, args=[]):
+def run(response, args=[]):
     response_obj = Response(sys.modules[__name__])
     cb = ChatBot('PantherBot')
     cb.set_trainer(ChatterBotCorpusTrainer)
@@ -18,6 +18,10 @@ def talk(response, args=[]):
     except:
         response_obj.messages_to_send.append("I'm feeling sick... come back later")
     return response_obj
+
+def return_alias():
+    alias_list = ["talk"]
+    return alias_list
 
 def is_admin_command():
     return False

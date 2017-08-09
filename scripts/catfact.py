@@ -6,7 +6,7 @@ import sys
 from response import Response
 
 
-def catfact(response):
+def run(response):
     response_obj = Response(sys.modules[__name__])
     web_page_contents = urllib2.urlopen("http://catfacts-api.appspot.com/api/facts?number=1").read()
     parsed_wbc = json.loads(web_page_contents)
@@ -16,6 +16,10 @@ def catfact(response):
         print "PantherBot:Log:CatFact:Error in catfacts"
         response_obj.status_code = -1
     return response_obj
+
+def return_alias():
+    alias_list = ["catfact"]
+    return alias_list
 
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])

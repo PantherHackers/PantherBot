@@ -6,8 +6,8 @@
 import sys
 from response import Response
 
-# Name your file with the title of your method, both of which should be all lowercase.
-def helloworld(response, args=None):  # response is always given to you, good for checking on user info or something unique to a message object, args is optional, or if your function may not take args, set it to None or [] depending on your needs
+# 'run' should have all your primary logic, and must exist
+def run(response, args=None):  # response is always given to you, good for checking on user info or something unique to a message object, args is optional, or if your function may not take args, set it to None or [] depending on your needs
     # This is your response_obj, it should be returned at the end of your script (or logic that calls for it to end early)
     # See response.py at the root of the project directory to see how it works in more depth
     response_obj = Response(sys.modules[__name__])
@@ -27,6 +27,10 @@ def helloworld(response, args=None):  # response is always given to you, good fo
     if possible_error is not 0:
         response_obj.status_code = -1
     return response_obj
+
+def return_alias():
+    alias_list = ["helloworld"]
+    return alias_list
 
 # Called before the script's main function (ie `helloworld()` above) to describe the purpose of the function
 # If admins are the only ones allowed to call this script's functionality, this should return True

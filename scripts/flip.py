@@ -4,7 +4,7 @@ import upsidedown, sys
 from response import Response
 
 # flips text using upsidedown module and has a donger for emohasis
-def flip(response, args=[]):
+def run(response, args=[]):
     response_obj = Response(sys.modules[__name__])
     toFlip = ''
     donger = '(╯°□°)╯︵'
@@ -24,6 +24,9 @@ def flip(response, args=[]):
         response_obj.status_code = -1
     return response_obj
 
+def return_alias():
+    alias_list = ["flip"]
+    return alias_list
 
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])

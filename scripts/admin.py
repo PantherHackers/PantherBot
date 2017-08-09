@@ -5,13 +5,16 @@ import sys
 from response import Response
 
 
-def admin(message_json, args, sc, bot, rmsg):
+def run(message_json, args, sc, bot, rmsg):
     response_obj = Response(sys.modules[__name__])
     if args[0].lower() == "add":
         args.pop(0)
         admin_add(message_json, args, sc, bot, rmsg)
     return response_obj
 
+def return_alias():
+    alias_list = ["admin"]
+    return alias_list
 
 # Temporary function to add Admins for testing purposes
 def admin_add(message_json, args, sc, bot, rmsg):
