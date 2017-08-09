@@ -5,17 +5,22 @@ import urllib2, json
 import sys
 from response import Response
 
+from pb_logging import PBLogger
+logger = PBLogger("CatFact")
 
 def catfact(response):
     response_obj = Response(sys.modules[__name__])
-    web_page_contents = urllib2.urlopen("http://catfacts-api.appspot.com/api/facts?number=1").read()
-    parsed_wbc = json.loads(web_page_contents)
-    if "true" in parsed_wbc["success"]:
+    try:
+        web_page_contents = urllib2.urlopen("http://catfacts-api.appspot.com/api/facts?number=1").read()
+        parsed_wbc = json.loads(web_page_contents)
+        
         response_obj.messages_to_send.append(parsed_wbc["facts"][0])
-    else:
-        print "PantherBot:Log:CatFact:Error in catfacts"
+        
+    except Exception as e:
+        logger.error("Error in catfacts: " + str(e)) 
         response_obj.status_code = -1
-    return response_obj
+    
+    return response_obj   
 
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])
