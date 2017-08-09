@@ -114,6 +114,7 @@ class ReactBot(Bot):
         except:
             pass
 
+        
         if "message" == message_json["type"]:
             if "subtype" in message_json:
                 if message_json["subtype"] == "bot_message":
