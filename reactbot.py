@@ -209,7 +209,7 @@ class ReactBot(Bot):
                 return True
 
             # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
-            called_function = getattr(commands[command_string], command_string)
+            called_function = getattr(commands[com_text], "run")
             script_response = called_function(*method_args)
             if script_response.status_code is 0:
                 self.response_message(message_json, script_response.messages_to_send)
@@ -267,7 +267,7 @@ class ReactBot(Bot):
                     return True
 
                 # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
-                called_function = getattr(commands[command_string], command_string)
+                called_function = getattr(commands[com_text], "run")
                 script_response = called_function(*method_args)
                 if script_response.status_code is 0:
                     self.response_message(message_json, script_response.messages_to_send)

@@ -8,7 +8,7 @@ from pb_logging import PBLogger
 logger = PBLogger("Help")
 
 # help script that details the list of commands
-def help(response):
+def run(response):
     response_obj = Response(sys.modules[__name__])
     text = "PantherBot works by prefacing commands with \"!\"\n"
     text += "Commands:\n"
@@ -37,6 +37,10 @@ def help(response):
     response_obj.messages_to_send.append(motext)
     logger.info("Help response")
     return response_obj
+
+def return_alias():
+    alias_list = ["help", "?", "h"]
+    return alias_list
 
 def is_admin_command():
     return False

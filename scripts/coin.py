@@ -8,13 +8,17 @@ from pb_logging import PBLogger
 logger = PBLogger("Coin")
 
 # flips a coin
-def coin(response):
+def run(response):
     response_obj = Response(sys.modules[__name__])
     l = ["Heads", "Tails"]
     m = random.randrange(0, 2)
     response_obj.messages_to_send.append(l[m])
     logger.info(l[m])
     return response_obj
+
+def return_alias():
+    alias_list = ["coin"]
+    return alias_list
 
 def is_admin_command():
     return False

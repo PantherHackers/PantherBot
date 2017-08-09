@@ -7,7 +7,7 @@ BUSY_MESSAGE = "Sorry, a poll is already in progress in this channel. Please hav
 import sys
 from response import Response
 
-def poll(response, options, sc, args):
+def run(response, options, sc, args):
     response_obj = Response(sys.modules[__name__])
     if args[0] == "begin":
         """
@@ -49,6 +49,9 @@ def poll(response, options, sc, args):
     response_obj.messages_to_send.append("You seemed to have used this method incorrectly... see !help to see how to use it")
     return response_obj
 
+def return_alias():
+    alias_list = ["poll"]
+    return alias_list
 
 def begin(response, options, args):
     op = []

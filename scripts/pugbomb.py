@@ -4,7 +4,7 @@ import praw
 import sys
 from response import Response
 
-def pugbomb(response, pb_cooldown, args):
+def run(response, pb_cooldown, args):
     response_obj = Response(sys.modules[__name__])
     if pb_cooldown is False:
         response_obj.messages_to_send.append("Sorry, pugbomb is on cooldown.")
@@ -42,6 +42,10 @@ def pugbomb(response, pb_cooldown, args):
     response_obj.messages_to_send = pug_urls
     response_obj.special_condition = True
     return response_obj
+
+def return_alias():
+    alias_list = ["pugbomb"]
+    return alias_list
 
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])
