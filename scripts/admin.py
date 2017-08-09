@@ -4,6 +4,9 @@ import subprocess, platform, os
 import sys
 from response import Response
 
+from pb_logging import PBLogger
+
+logger = PBLogger("Admin")
 
 def run(message_json, args, sc, bot, rmsg):
     response_obj = Response(sys.modules[__name__])
@@ -18,10 +21,11 @@ def return_alias():
 
 # Temporary function to add Admins for testing purposes
 def admin_add(message_json, args, sc, bot, rmsg):
-    print "Adding user to admin list temporarily"
+    
     for id in args:
         bot.ADMIN.append(id)
         rmsg(message_json, ["User ID " + id + " has been temporarily added to the admin list"])
+        logger.info("User ID " + id + "has been temporarily added to the admin list")
 
 def is_admin_command():
     return True

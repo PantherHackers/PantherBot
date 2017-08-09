@@ -4,15 +4,18 @@ import urllib2
 import sys
 from response import Response
 
+from pb_logging import PBLogger
+logger = PBLogger("Fortune")
+
 # returns a random "fortune"
 def run(response):
     response_obj = Response(sys.modules[__name__])
     try:
         # get fortune
         fortune = urllib2.urlopen("http://www.fortunefortoday.com/getfortuneonly.php").read()  # noqa: 501
-    except:
-        fortune = "Unable to reach fortune telling api"
-        print "PantherBot:Log:Fortune:Error in receiving fortune"
+    except Exception as e:
+        fortune = "Unable to reach Fortune Telling api"
+        logger.error("Unable to reach Fortune Telling API: " + str(e))
 
     # make api call
     response_obj.messages_to_send.append(fortune)

@@ -4,6 +4,9 @@
 import sys
 from response import Response
 
+from pb_logging import PBLogger
+logger = PBLogger("Help")
+
 # help script that details the list of commands
 def run(response):
     response_obj = Response(sys.modules[__name__])
@@ -32,6 +35,7 @@ def run(response):
     motext += "Got suggestions for PantherBot? Fill out our typeform to leave your ideas! https://goo.gl/rEb0B7"  # noqa: 501
     response_obj.messages_to_send.append(text)
     response_obj.messages_to_send.append(motext)
+    logger.info("Help response")
     return response_obj
 
 def return_alias():

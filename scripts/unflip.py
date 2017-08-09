@@ -4,6 +4,9 @@
 import sys
 from response import Response
 
+from pb_logging import PBLogger
+logger = PBLogger("Unflip")
+
 #"unflips" text
 def run(response, args=[]):
     response_obj = Response(sys.modules[__name__])
@@ -17,9 +20,10 @@ def run(response, args=[]):
     try:
         donger = "ノ( º _ ºノ)"
         donger = unicode(donger, "utf-8")
+        logger.info(toUnFlip[:15 or len(toUnFlip)] + "...")
         response_obj.messages_to_send.append(toUnFlip + donger)
     except Exception as e:
-        print "PantherBot:Log:Flip:Error in flip: " + str(e)
+        logger.error("Error in flip: " + str(e))
         response_obj.status_code = -1
     return response_obj
 
