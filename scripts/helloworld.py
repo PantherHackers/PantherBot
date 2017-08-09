@@ -6,8 +6,17 @@
 import sys
 from response import Response
 
+# Import these so that you can use the logger functions
+# so that you can log things
+import logging
+from pb_logging import PBLogger
+
+# If you need to print something that will be used for official logging purposes
+# use this logger class using the custom handler PBHandler from the log_handler class
+logger = PBLogger('Hello World')
+
 # 'run' should have all your primary logic, and must exist
-def run(response, args=None):  # response is always given to you, good for checking on user info or something unique to a message object, args is optional, or if your function may not take args, set it to None or [] depending on your needs
+def run(response, args=None):   # response is always given to you, good for checking on user info or something unique to a message object, args is optional, or if your function may not take args, set it to None or [] depending on your needs
     # This is your response_obj, it should be returned at the end of your script (or logic that calls for it to end early)
     # See response.py at the root of the project directory to see how it works in more depth
     response_obj = Response(sys.modules[__name__])
