@@ -8,7 +8,7 @@ from pb_logging import PBLogger
 logger = PBLogger("Rage")
 
 # flips text using upsidedown module and has a donger for emohasis
-def rage(response, args=[]):
+def run(response, args=[]):
     response_obj = Response(sys.modules[__name__])
     toFlip = ''
     donger = '(ノಠ益ಠ)ノ彡'
@@ -27,6 +27,10 @@ def rage(response, args=[]):
         logger.error("Error in flip: " + str(e))
         response_obj.messages_to_send.append("Sorry, I can't seem to flip right now, or you gave an invalid argument")
     return response_obj
+
+def return_alias():
+    alias_list = ["rage"]
+    return alias_list
 
 def is_admin_command():
     return False

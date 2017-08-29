@@ -8,7 +8,7 @@ from pb_logging import PBLogger
 logger = PBLogger("Fortune")
 
 # returns a random "fortune"
-def fortune(response):
+def run(response):
     response_obj = Response(sys.modules[__name__])
     try:
         # get fortune
@@ -20,6 +20,10 @@ def fortune(response):
     # make api call
     response_obj.messages_to_send.append(fortune)
     return response_obj
+
+def return_alias():
+    alias_list = ["fortune"]
+    return alias_list
 
 def is_admin_command():
     return False

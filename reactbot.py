@@ -65,6 +65,10 @@ class ReactBot(Bot):
             "users.list"
         )
 
+        # Obtains the User Greeting for new users from the stored file
+        with open("user_greeting.txt") as file:
+            self.USER_GREETING = file.read()
+
         # List of polls for all channels
         self.POLLING_LIST = {}
         pub_channels = self.SLACK_CLIENT.api_call(
@@ -102,6 +106,14 @@ class ReactBot(Bot):
         message_json = json.loads(unicode(s))
 
         logger.info(message_json["type"].replace("_"," ").title())
+        
+        try:
+            if Bot.GENERAL_CHANNEL == message_json["channel"]:
+                if "member_joined_channel" == message_json["type"]:
+                    self.message_user(message_json["user"], self.USER_GREETING)
+        except:
+            pass
+
         
         if "message" == message_json["type"]:
             if "subtype" in message_json:
@@ -209,7 +221,7 @@ class ReactBot(Bot):
                 return True
 
             # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
-            called_function = getattr(commands[command_string], command_string)
+            called_function = getattr(commands[command_string], "run")
             script_response = called_function(*method_args)
             if script_response.status_code is 0:
                 self.response_message(message_json, script_response.messages_to_send)
@@ -267,7 +279,7 @@ class ReactBot(Bot):
                     return True
 
                 # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
-                called_function = getattr(commands[command_string], command_string)
+                called_function = getattr(commands[command_string], "run")
                 script_response = called_function(*method_args)
                 if script_response.status_code is 0:
                     self.response_message(message_json, script_response.messages_to_send)
@@ -320,6 +332,13 @@ class ReactBot(Bot):
             return False
         except:
             logger.error("Error with checking in other_message: likely the message contained unicode characters")
+
+    def message_user(self, user_id, text):
+        dm_json = self.SLACK_CLIENT.api_call(
+            "im.open",
+            user=user_id
+        )
+        self.send_msg(dm_json["channel"]["id"], text, is_id=True)
 
     # Reacts to all messages posted in the GENERAL channel with a pre-defined list of emojis
     def react_announcement(self, message_json):

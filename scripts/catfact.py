@@ -8,7 +8,7 @@ from response import Response
 from pb_logging import PBLogger
 logger = PBLogger("CatFact")
 
-def catfact(response):
+def run(response):
     response_obj = Response(sys.modules[__name__])
     try:
         web_page_contents = urllib2.urlopen("http://catfacts-api.appspot.com/api/facts?number=1").read()
@@ -21,6 +21,10 @@ def catfact(response):
         response_obj.status_code = -1
     
     return response_obj   
+
+def return_alias():
+    alias_list = ["catfact"]
+    return alias_list
 
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])
