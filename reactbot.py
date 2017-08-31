@@ -174,10 +174,10 @@ class ReactBot(Bot):
                 return True
 
             if command_string == "talk":
-                ch = Bot.channels_to_ids(self, [TTPB])
+                ch = Bot.channels_to_ids(self, [self.TTPB])
                 c = ch[0]
                 if message_json["channel"] != c:
-                    self.response_message(message_json, ["Talk to me in #" + TTPB])
+                    self.response_message(message_json, ["Talk to me in #" + self.TTPB])
                     return True
 
             # list that contains the message_json and args for all methods
