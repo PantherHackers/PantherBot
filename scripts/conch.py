@@ -7,7 +7,6 @@ from response import Response
 from pb_logging import PBLogger
 logger = PBLogger("Conch")
 
-# flips a coin
 def run(response, args):
     response_obj = Response(sys.modules[__name__])
     lower_args = [arg.lower() for arg in args]
@@ -26,3 +25,9 @@ def return_alias():
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!conch <Optional:String>"
+
+def help_text():
+    return "Performs the questioning ritual of the conch from Spongebob Season 3 Episode 42a. All hail the magic conch!"
