@@ -273,7 +273,11 @@ class ReactBot(Bot):
                     self.response_message(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
                     return True
 
-                if message_json["user"] not in self.ADMIN:
+                user_info = self.SLACK_CLIENT.api_call(
+                    "users.info",
+                    user = message_json["user"]
+                )
+                if user_info["user"]["is_admin"] is not True:
                     self.response_message(message_json, ["You don't seem to be an authorized user to use these commands."])
                     return True
 

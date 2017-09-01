@@ -8,7 +8,6 @@ Attributes:
     # Config Variables
     EMOJI_LIST (List): List of Strings for emojis to be added to announcements
     USER_LIST (JSON): List of users in JSON format
-    ADMIN (List): ["U25PPE8HH", "U262D4BT6", "U0LAMSXUM", "U3EAHHF40"] testing defaults
     TTPB (String): Config variable, sets channel for cleverbot integration
     GENERAL (Stirng): Config variable, sets channel for general's name
     LOG (boolean): Global Variable
@@ -32,8 +31,7 @@ import logging
 logger = PBLogger('Bot')
 
 class Bot(object):
-    admin_env_string = os.environ['PB_ADMIN']
-    ADMIN = admin_env_string.split(',')
+    
 
     # Set the name for the logger
     # Add custom log handler to logger
