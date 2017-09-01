@@ -62,6 +62,7 @@ def error_cleanup(error_code):
         logger.error("Error: " + error_code)
     return response_obj
 
+# All commands require a help_preview and help_text command that describe their expected usage format and functionality.
 def help_preview():
     return "!helloworld <Optional:String>"
 
