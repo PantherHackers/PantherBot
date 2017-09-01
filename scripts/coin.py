@@ -22,3 +22,9 @@ def return_alias():
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!coin"
+
+def help_text():
+    return "Flips a coin and returns the result... Sometimes you wonder if people even read these. Heads they don't."

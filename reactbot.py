@@ -23,7 +23,6 @@ from slackclient import SlackClient
 import threading, websocket, json, re, time, codecs, random, logging
 import scripts
 from bot import Bot
-from scripts import commands
 
 from pb_logging import PBLogger
 
@@ -211,7 +210,7 @@ class ReactBot(Bot):
             # and also less likely to skip an error that should be printed to the console.
             try:
                 # Check if the command is an admin command using the script's self-declaration method
-                check_admin_function = getattr(commands[command_string], "is_admin_command")
+                check_admin_function = getattr(self.COMMANDS_LIST[command_string], "is_admin_command")
                 if check_admin_function():
                     self.response_message(message_json, ["Sorry, admin commands may only be used with the $ symbol (ie. `$admin`)"])
                     return True
@@ -221,7 +220,7 @@ class ReactBot(Bot):
                 return True
 
             # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
-            called_function = getattr(commands[command_string], "run")
+            called_function = getattr(self.COMMANDS_LIST[command_string], "run")
             script_response = called_function(*method_args)
             if script_response.status_code is 0:
                 self.response_message(message_json, script_response.messages_to_send)
@@ -265,7 +264,7 @@ class ReactBot(Bot):
                 # and also less likely to skip an error that should be printed to the console.
                 try:
                     # Check if the command is an admin command using the script's self-declaration method
-                    check_admin_function = getattr(commands[command_string], "is_admin_command")
+                    check_admin_function = getattr(self.COMMANDS_LIST[command_string], "is_admin_command")
                     if not check_admin_function():
                         self.response_message(message_json, ["Sorry, normal commands should be used with the `!` prefix (ie `!coin`)"])
                         return True
@@ -279,7 +278,7 @@ class ReactBot(Bot):
                     return True
 
                 # Finds the command with the name matching the text given, and executes it, assumed to exist because of above check
-                called_function = getattr(commands[command_string], "run")
+                called_function = getattr(self.COMMANDS_LIST[command_string], "run")
                 script_response = called_function(*method_args)
                 if script_response.status_code is 0:
                     self.response_message(message_json, script_response.messages_to_send)
@@ -297,12 +296,15 @@ class ReactBot(Bot):
     # Other Messages are messages that don't follow standard conventions (such as "Hey PantherBot!")
     # Returns True if a message_json or trigger was used in this method
     def other_message(self, message_json):
+        # Ignore message edits
+        if "subtype" in message_json:
+            if message_json["subtype"] == "message_changed":
+                return True
+
         # If not an ! or $, checks if it should respond to another message format, like a greeting 
         message_txt = message_json["text"].lower()
 
         try:
-
-
             if re.match(".*panther +hackers.*", str(message_txt)):
                 self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
                 return True

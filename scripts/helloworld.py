@@ -61,3 +61,10 @@ def error_cleanup(error_code):
         # You can log an error here too
         logger.error("Error: " + error_code)
     return response_obj
+
+# All commands require a help_preview and help_text command that describe their expected usage format and functionality.
+def help_preview():
+    return "!helloworld <Optional:String>"
+
+def help_text():
+    return "Returns your string with 'Hello World:' as a prefix."
