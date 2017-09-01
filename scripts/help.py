@@ -15,17 +15,14 @@ def run(response, args=None):
     #Default call to !help
     if args is None:
         commands_help_text = "PantherBot works by prefacing commands with \"!\"\nCommands:\n```"
-        commands_help_text += "!version\n"
+        commands_help_text += "!version"
 
         list_of_used_commands = []
         for value in commands.values():
             if value not in list_of_used_commands:
                 list_of_used_commands.append(value)
-                try:
-                    get_help_preview = getattr(value, "help_preview")
-                    commands_help_text += get_help_preview() + "\n"
-                except:
-                    logger.error("Module " + str(value) + " has no help_preview function")
+                get_help_preview = getattr(value, "help_preview")
+                commands_help_text += get_help_preview() + "\n"
         commands_help_text += "```\nAdmins can use `$` commands\n"
         commands_help_text += "Got suggestions for PantherBot? Fill out our typeform to leave your ideas! https://goo.gl/rEb0B7"
         
@@ -58,6 +55,7 @@ def error_cleanup(error_code):
     else:
         response_obj.messages_to_send.append("An unknown error occured. Error code: " + error_code)
         logger.error("Error: Unknown error code" + error_code)
+>>>>>>> Added help context to the script files themselves
     return response_obj
 
 def return_alias():
