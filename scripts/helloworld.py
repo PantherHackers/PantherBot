@@ -16,7 +16,7 @@ from pb_logging import PBLogger
 logger = PBLogger('Hello World')
 
 # 'run' should have all your primary logic, and must exist
-def run(response, args=None):   # response is always given to you, good for checking on user info or something unique to a message object, args is optional, or if your function may not take args, set it to None or [] depending on your needs
+def run(response, args=None):   # response is always given to you, good for checking on user info or something unique to a message object, args is optional but your code will not run if given arguments and this is not present, or if your function may not take args, set it to None or [] depending on your needs
     # This is your response_obj, it should be returned at the end of your script (or logic that calls for it to end early)
     # See response.py at the root of the project directory to see how it works in more depth
     response_obj = Response(sys.modules[__name__])
