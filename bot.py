@@ -41,7 +41,7 @@ class Bot(object):
     EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
     GENERAL_CHANNEL = ""
     TTPB = "talk-to-pantherbot"
-    VERSION = "2.0.0"
+    VERSION = "2.1.0"
 
     def __init__(self, token, bot_name=""):
         self.SLACK_CLIENT = None
@@ -52,6 +52,7 @@ class Bot(object):
         self.WEBSOCKET = None
         self.THREADS = []
         self.pb_cooldown = True
+        self.COMMANDS_LIST = commands
         self.create_slack_client(token)
 
     def create_slack_client(self, token):

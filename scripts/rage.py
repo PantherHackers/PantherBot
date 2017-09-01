@@ -34,3 +34,9 @@ def return_alias():
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!rage <Optional:String>"
+
+def help_text():
+    return "Rage flips the text or table because you really want the world to know that you're upset."

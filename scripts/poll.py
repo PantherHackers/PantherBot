@@ -125,3 +125,9 @@ def results(response, options, sc, args):
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!poll <begin/start/end/results> [arguments followed by a `;`]"
+
+def help_text():
+    return "To set up a poll, use `!poll begin (Option 1); (Option 2); ...; (Option n);` where n is <= 10\nTo begin the poll, use `!poll start`\nTo end the poll, use `!poll end`\nTo review the results of the last poll, use `!poll results`\nThis command needs to be rewritten... Go poke Braxton."
