@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os, time
+import os, time, json
 import sys
 from response import Response
+from slackclient import SlackClient
 
 from pb_logging import PBLogger
 
@@ -14,6 +15,8 @@ def run(message_json, args, sc, bot, rmsg):
         logger.info("Add admin")
         args.pop(0)
         admin_add(message_json, args, sc, bot, rmsg)
+        
+    # This requires the user's token be authed as admin (legacy, not bot tokens bypass this need)
     elif args[0].lower() == "inactive-list":
         logger.info("Inactive list")
         args.pop(0)
@@ -26,35 +29,43 @@ def return_alias():
 
 # Temporary function to add Admins for testing purposes
 def admin_add(message_json, args, sc, bot, rmsg):
-    
     for id in args:
         bot.ADMIN.append(id)
         rmsg(message_json, ["User ID " + id + " has been temporarily added to the admin list"])
         logger.info("User ID " + id + "has been temporarily added to the admin list")
 
 def compile_inactive_list(message_json, bot, response_obj):
-    list_of_marked_users = check_user_status(bot)
+    list_of_emails = check_user_status(bot)
     response_obj.messages_to_send.append("Sending list to you in a DM.")
     message_string = "List of emails:\n"
-    for email in list_of_marked_users:
+    for email in list_of_emails:
         message_string += email + "\n"
     bot.message_user(message_json["user"], message_string)
     return response_obj
 
-# Checks the user list for activity in the last 30 days, and return a list of emails.
+# Checks the user list for activity in the last 14 days, and return a list of emails.
 def check_user_status(bot):
     temp_list = bot.SLACK_CLIENT.api_call(
-        "users.list"
+        "team.billableInfo"
     )
+    if temp_list["ok"] is not True:
+        logger.error("User token likely not authed with admin scope. Please update use a legacy token, or use the proper OAuth request.")
+    data = temp_list["billable_info"]
     list_of_marked_users = []
-    for user in temp_list["members"]:
-        user_updated_ts = float(user["updated"])
-        current_ts = time.time()
-        if user_updated_ts < (current_ts - 10):
-            list_of_marked_users.append(user["profile"]["email"])
-    logger.info("User list checked. " + str(len(list_of_marked_users)) + " have been marked as inactive in the last 30 days.")
-    return list_of_marked_users
+    list_of_emails = []
+    for user in data:
+        if data[user]["billing_active"] is False:
+            list_of_marked_users.append(user)
 
+    for user in bot.BOT_CONN["users"]:
+        if user["id"] in list_of_marked_users:
+            try:
+                list_of_emails.append(user["profile"]["email"])
+            except:
+                logger.info("No email available for user: " + user["name"])
+
+    logger.info("User list checked. " + str(len(list_of_marked_users)) + " have been marked as inactive in the last 14 days.")
+    return list_of_emails
 
 def is_admin_command():
     return True

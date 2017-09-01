@@ -40,7 +40,7 @@ class ReactBot(Bot):
     def connect_to_slack(self, token):
         # Initiates connection to the server based on the token, receives websocket URL "bot_conn"
         logger.info("Starting RTM connection")
-        bot_conn = self.SLACK_CLIENT.api_call(
+        self.BOT_CONN = self.SLACK_CLIENT.api_call(
             "rtm.start",
             token = token
         )
@@ -51,7 +51,7 @@ class ReactBot(Bot):
         # Creates WebSocketApp based on the URL returned by the RTM API
         # Assigns local methods to websocket methods
         logger.info("Initializing WebSocketApplication")
-        self.WEBSOCKET = websocket.WebSocketApp(bot_conn["url"],
+        self.WEBSOCKET = websocket.WebSocketApp(self.BOT_CONN["url"],
                                 on_message=self.on_message,
                                 on_error=self.on_error,
                                 on_close=self.on_close,
