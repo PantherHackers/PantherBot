@@ -12,11 +12,12 @@ def run(response):
     response_obj = Response(sys.modules[__name__])
     text = "PantherBot works by prefacing commands with \"!\"\n"
     text += "Commands:\n"
-    text += "```!help\n"
+    text += "```!help or !h\n"
     text += "!coin\n"
     text += "!helloworld\n"
     text += "!version\n"
     text += "!fortune\n"
+    text += "!conch or !magicconch\n"
     text += "!flip <Optional:String>\n"
     text += "!unflip <Optional:String>\n"
     text += "!rage <Optional:String>\n"
