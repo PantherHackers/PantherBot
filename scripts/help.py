@@ -15,14 +15,17 @@ def run(response, args=None):
     #Default call to !help
     if args is None:
         commands_help_text = "PantherBot works by prefacing commands with \"!\"\nCommands:\n```"
-        commands_help_text += "!version"
+        commands_help_text += "!version\n"
 
         list_of_used_commands = []
         for value in commands.values():
             if value not in list_of_used_commands:
                 list_of_used_commands.append(value)
-                get_help_preview = getattr(value, "help_preview")
-                commands_help_text += get_help_preview() + "\n"
+                try:
+                    get_help_preview = getattr(value, "help_preview")
+                    commands_help_text += get_help_preview() + "\n"
+                except:
+                    logger.error("Module " + str(value) + " has no help_preview function")
         commands_help_text += "```\nAdmins can use `$` commands\n"
         commands_help_text += "Got suggestions for PantherBot? Fill out our typeform to leave your ideas! https://goo.gl/rEb0B7"
         
