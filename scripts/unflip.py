@@ -41,3 +41,9 @@ def error_cleanup(error_code):
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!unflip <Optional:String>"
+
+def help_text():
+    return "Restore order to the world by placing the table or text back down. I'm proud of you citizen!"

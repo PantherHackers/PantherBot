@@ -42,3 +42,9 @@ def error_cleanup(error_code):
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!flip <Optional:String>"
+
+def help_text():
+    return unicode("Flips your message because sometimes you just really need someone to know that they messed up... Or your DM is having you face a dragon and want to spare your favorite character. (╯°□°)╯︵┻━┻", "utf-8")

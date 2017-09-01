@@ -27,3 +27,9 @@ def return_alias():
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!fortune"
+
+def help_text():
+    return "Returns a random fortune from an inconsistent API. Responses are slow, just give it some time Jim!"

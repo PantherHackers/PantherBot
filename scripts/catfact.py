@@ -36,3 +36,9 @@ def error_cleanup(error_code):
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!catfact"
+
+def help_text():
+    return "Catfact returns a random catfact from a lovely API that crashes all the time. Praise Lord Mittens. Ask about Mo's cats."

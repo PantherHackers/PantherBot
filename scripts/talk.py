@@ -25,3 +25,9 @@ def return_alias():
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!talk <String>"
+
+def help_text():
+    return "You can hold a conversation with PantherBot (although the quality and snarkiness might not be to your liking) by prefacing your sentences with `!talk`"

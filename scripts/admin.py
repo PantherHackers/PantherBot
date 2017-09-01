@@ -29,3 +29,9 @@ def admin_add(message_json, args, sc, bot, rmsg):
 
 def is_admin_command():
     return True
+
+def help_preview():
+    return "$admin add"
+
+def help_text():
+    return "$admin allows for moderator intervention to the live instance of PantherBot. Currently this just means adding more admins to the list, but that will change in the future."

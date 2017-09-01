@@ -66,3 +66,9 @@ def special_condition(bot):
 
 def is_admin_command():
     return False
+
+def help_preview():
+    return "!pugbomb"
+
+def help_text():
+    return "RETURNS YOU BEAUTIFUL REDDIT PUGS. Pugs are my favorite."
