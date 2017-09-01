@@ -296,12 +296,15 @@ class ReactBot(Bot):
     # Other Messages are messages that don't follow standard conventions (such as "Hey PantherBot!")
     # Returns True if a message_json or trigger was used in this method
     def other_message(self, message_json):
+        # Ignore message edits
+        if "subtype" in message_json:
+            if message_json["subtype"] == "message_changed":
+                return True
+
         # If not an ! or $, checks if it should respond to another message format, like a greeting 
         message_txt = message_json["text"].lower()
 
         try:
-
-
             if re.match(".*panther +hackers.*", str(message_txt)):
                 self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
                 return True
