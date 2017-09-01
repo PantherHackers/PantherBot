@@ -55,7 +55,6 @@ def error_cleanup(error_code):
     else:
         response_obj.messages_to_send.append("An unknown error occured. Error code: " + error_code)
         logger.error("Error: Unknown error code" + error_code)
->>>>>>> Added help context to the script files themselves
     return response_obj
 
 def return_alias():
