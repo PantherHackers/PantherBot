@@ -43,7 +43,7 @@ import os, io, sys, time, codecs, websocket, json, logging, random, logtofile  #
 import re
 
 # Version Number: release.version_num.revision_num
-VERSION = "1.1.9"
+VERSION = "1.2.0"
 
 # Config Variables
 BOT_NAME = ""
