@@ -32,10 +32,6 @@ logger = PBLogger('Bot')
 
 class Bot(object):
     
-
-    # Set the name for the logger
-    # Add custom log handler to logger
-
     EMOJI_LIST = ["party-parrot", "venezuela-parrot", "star2", "fiesta-parrot", "wasfi_dust", "dab"]
     GENERAL_CHANNEL = ""
     TTPB = "talk-to-pantherbot"
