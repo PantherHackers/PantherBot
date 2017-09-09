@@ -3,31 +3,14 @@
 
 from chatterbot import ChatBot
 from chatterbot.trainers import ChatterBotCorpusTrainer
-import sys
-from response import Response
 
-def run(response, args=[]):
-    response_obj = Response(sys.modules[__name__])
+def talk(response, args=[]):
     cb = ChatBot('PantherBot')
     cb.set_trainer(ChatterBotCorpusTrainer)
     cb.train(
     "chatterbot.corpus.english"
     )
     try:
-        response_obj.messages_to_send.append(cb.get_response(" ".join(args)).text)
+        return [cb.get_response(" ".join(args)).text]
     except:
-        response_obj.messages_to_send.append("I'm feeling sick... come back later")
-    return response_obj
-
-def return_alias():
-    alias_list = ["talk"]
-    return alias_list
-
-def is_admin_command():
-    return False
-
-def help_preview():
-    return "!talk <String>"
-
-def help_text():
-    return "You can hold a conversation with PantherBot (although the quality and snarkiness might not be to your liking) by prefacing your sentences with `!talk`"
+        return ["I'm feeling sick... come back later"]
