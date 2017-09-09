@@ -11,16 +11,21 @@ logger = PBLogger("Admin")
 
 def run(message_json, args, sc, bot, rmsg):
     response_obj = Response(sys.modules[__name__])
-    if args[0].lower() == "add":
+    if args[0].lower() == "list":
+        logger.info("Admin command list")
+        response_obj.messages_to_send.append("The current admin commands are `list`, `add`, and `inactive-list`")
+    elif args[0].lower() == "add":
         logger.info("Add admin")
         args.pop(0)
-        admin_add(message_json, args, sc, bot, rmsg)
-        
+        admin_add(message_json, args, sc, bot, rmsg) 
     # This requires the user's token be authed as admin (legacy, not bot tokens bypass this need)
     elif args[0].lower() == "inactive-list":
         logger.info("Inactive list")
         args.pop(0)
         response_obj = compile_inactive_list(message_json, bot, response_obj)
+    else:
+        logger.info("No admin command called for")
+        response_obj.messages_to_send.append("The argument `" + args[0] + "` is not a proper admin command.")
     return response_obj
 
 def return_alias():
@@ -50,6 +55,7 @@ def check_user_status(bot):
     )
     if temp_list["ok"] is not True:
         logger.error("User token likely not authed with admin scope. Please update use a legacy token, or use the proper OAuth request.")
+        return ["List is unobtainable with current token auth scope."]
     data = temp_list["billable_info"]
     list_of_marked_users = []
     list_of_emails = []
