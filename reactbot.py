@@ -332,6 +332,7 @@ class ReactBot(Bot):
                 return True
             else:
                 return False
+        return False
 
     def message_user(self, user_id, text):
         dm_json = self.SLACK_CLIENT.api_call(
