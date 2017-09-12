@@ -44,10 +44,10 @@ if __name__ == "__main__":
                 for b in BOT_LIST:
                     if b.WEBSOCKET != None:
                         b.pb_cooldown = True
-            if count_interval % 1500 is 0:
-                proactive_bot.send_msg("pantherbot-dev", "Check-in")
+            if count_interval % 86400 is 0:
+                proactive_bot.send_msg("pantherbot-dev", "Check-in", thread_ts=react_bot.check_in_thread_ts)
                 logger.info("Proactive still alive")
-            if count_interval >= 1500:
+            if count_interval >= 86400:
                 count_interval = 0
         except KeyboardInterrupt:
             logger.info("Keyboard Interrupt")

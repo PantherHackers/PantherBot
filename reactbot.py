@@ -145,7 +145,8 @@ class ReactBot(Bot):
         return
 
     def on_open(self, ws):
-        Bot.send_msg(self, "pantherbot-dev", "Bot successfully started")
+        response_json = Bot.send_msg(self, "pantherbot-dev", "Bot successfully started")
+        self.check_in_thread_ts = response_json["ts"]
 
     # message_json Message
     # Sends a message to the same channel that message_json originates from
@@ -300,44 +301,42 @@ class ReactBot(Bot):
     # Other Messages are messages that don't follow standard conventions (such as "Hey PantherBot!")
     # Returns True if a message_json or trigger was used in this method
     def other_message(self, message_json):
-        # Ignore message edits
-        if "subtype" in message_json:
-            if message_json["subtype"] == "message_changed":
-                return True
-
-        # If not an ! or $, checks if it should respond to another message format, like a greeting 
-        message_txt = message_json["text"].lower()
-
-        try:
-            if re.match(".*panther +hackers.*", str(message_txt)):
-                self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
-                return True
-            elif message_txt == "hey pantherbot":
-                # returns user info that said hey
-                # TODO make this use USER_LIST
-                temp_user = self.SLACK_CLIENT.api_call(
-                    "users.info",
-                    user = message_json["user"]
-                )
-                logger.info("We did it reddit")
-                self.response_message(message_json, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
-                return True
-
-            elif message_txt == "pantherbot ping":
-                self.response_message(message_json, ["PONG"])
-                return True
-
-            elif message_txt == ":rip: pantherbot" or message_txt == "rip pantherbot":
-                self.response_message(message_json, [":rip:"])
-                return True
-
-            elif "subtype" in message_json:
-                if message_json["subtype"] == "channel_leave" or message_json["subtype"] == "group_leave": 
-                    self.response_message(message_json, ["Press F to pay respects"])
+        if "subtype" not in message_json:
+            message_txt = message_json["text"].lower()
+            try:
+                if re.match(".*panther +hackers.*", str(message_txt)):
+                    self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
                     return True
-            return False
-        except:
-            logger.error("Error with checking in other_message: likely the message contained unicode characters")
+                elif message_txt == "hey pantherbot":
+                    # returns user info that said hey
+                    # TODO make this use USER_LIST
+                    temp_user = self.SLACK_CLIENT.api_call(
+                        "users.info",
+                        user = message_json["user"]
+                    )
+                    logger.info("We did it reddit")
+                    self.response_message(message_json, ["Hello, " + temp_user["user"]["profile"]["first_name"] + "! :tada:"])
+                    return True
+
+                elif message_txt == "pantherbot ping":
+                    self.response_message(message_json, ["PONG"])
+                    return True
+
+                elif message_txt == ":rip: pantherbot" or message_txt == "rip pantherbot":
+                    self.response_message(message_json, [":rip:"])
+                    return True
+                
+                # No response was necessary
+                return False
+            except:
+                logger.error("Error with checking in other_message: likely the message contained unicode characters")
+        elif "subtype" in message_json:
+            if message_json["subtype"] == "channel_leave" or message_json["subtype"] == "group_leave": 
+                self.response_message(message_json, ["Press F to pay respects"])
+                return True
+            else:
+                return False
+        return False
 
     def message_user(self, user_id, text):
         dm_json = self.SLACK_CLIENT.api_call(

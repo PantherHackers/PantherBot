@@ -45,8 +45,11 @@ class Bot(object):
         self.POLLING_LIST = dict()
         self.WEBSOCKET = None
         self.THREADS = []
-        self.pb_cooldown = True
         self.COMMANDS_LIST = commands
+        
+        self.pb_cooldown = True
+        # self.check_in_thread_ts
+
         self.create_slack_client(token)
 
     def create_slack_client(self, token):
@@ -76,19 +79,30 @@ class Bot(object):
 
     # Send Message
     # Sends a message to the specified channel (looks up by channel name, unless is_id is True)
-    def send_msg(self, channel, text, is_id=False):
+    def send_msg(self, channel, text, is_id=False, thread_ts=None):
         if is_id:
             channel_id = channel
         else:
             channel_id = self.channels_to_ids([channel])[0]
-        self.SLACK_CLIENT.api_call(
-            "chat.postMessage",
-            channel=channel_id,
-            text=text,
-            username=self.BOT_NAME,
-            icon_url=self.BOT_ICON_URL
-        )
+        if thread_ts is not None:
+            response_json = self.SLACK_CLIENT.api_call(
+                "chat.postMessage",
+                channel=channel_id,
+                text=text,
+                username=self.BOT_NAME,
+                icon_url=self.BOT_ICON_URL,
+                thread_ts=thread_ts
+            )
+        else:
+            response_json = self.SLACK_CLIENT.api_call(
+                "chat.postMessage",
+                channel=channel_id,
+                text=text,
+                username=self.BOT_NAME,
+                icon_url=self.BOT_ICON_URL
+            )
         logger.info("Message sent: ")
+        return response_json
 
     def emoji_reaction(self, channel, ts, emoji):
         self.SLACK_CLIENT.api_call(
