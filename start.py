@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # Initializes our primary bot
     # This is the reactive bot known as "PantherBot," and is responsible for all message detection and immediate reactions
     logger.info("Initializing bot")
-    token = os.environ.get('PB_TOKEN')
+    token = 'xoxb-198670880308-bIdDTAqFCP7z6v8Jq7ZOyqr3'
 
     # List of all bots running in current process.
     BOT_LIST = []
