@@ -145,8 +145,7 @@ class ReactBot(Bot):
         return
 
     def on_open(self, ws):
-        response_json = Bot.send_msg(self, "pantherbot-dev", "Bot successfully started")
-        self.check_in_thread_ts = response_json["ts"]
+        return
 
     # message_json Message
     # Sends a message to the same channel that message_json originates from
