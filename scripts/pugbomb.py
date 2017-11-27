@@ -4,12 +4,16 @@ import praw
 import sys
 from response import Response
 
-def run(response, pb_cooldown, args):
+def run(response, pb_cooldown, args=None):
     response_obj = Response(sys.modules[__name__])
     if pb_cooldown is False:
         response_obj.messages_to_send.append("Sorry, pugbomb is on cooldown.")
         return response_obj
-
+    
+    if args is None:
+        response_obj.status_code = -3
+        return response_obj
+    
     try:
         num = round(int(args[0]))
     except:
@@ -22,6 +26,7 @@ def run(response, pb_cooldown, args):
     elif num <= 0:
         # not more than 0
         response_obj.status_code = -2
+        return response_obj
 
     reddit = praw.Reddit(client_id='aGpQJujCarDHWA',
                         client_secret='fkA9lp0NDx23B_qdFezTeGyGKu8',
@@ -53,6 +58,8 @@ def error_cleanup(error_code):
         response_obj.messages_to_send.append("Sorry, you didn't enter a number!")
     elif error_code is -2:
         response_obj.messages_to_send.append("Sorry, I can't give you negative pugs.")
+    elif error_code is -3:
+        response_obj.messages_to_send.append("Please enter a number for Pugbomb!")
     else:
         response_obj.messages_to_send.append("An unknown error occured. Error code: " + str(error_code))
     return response_obj
