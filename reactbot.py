@@ -327,7 +327,6 @@ class ReactBot(Bot):
                 logger.error("Error with checking in other_message: likely the message contained unicode characters")
         elif "subtype" in message_json:
             if message_json["subtype"] == "channel_leave" or message_json["subtype"] == "group_leave": 
-                self.response_message(message_json, ["Press F to pay respects"])
                 return True
             else:
                 return False
