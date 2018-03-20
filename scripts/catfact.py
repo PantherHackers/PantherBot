@@ -10,17 +10,19 @@ logger = PBLogger("CatFact")
 
 def run(response):
     response_obj = Response(sys.modules[__name__])
+    catfact_url = "https://catfact.ninja/fact"
+
     try:
-        web_page_contents = urllib2.urlopen("http://catfacts-api.appspot.com/api/facts?number=1").read()
-        parsed_wbc = json.loads(web_page_contents)
-        
-        response_obj.messages_to_send.append(parsed_wbc["facts"][0])
-        
+        raw_response = urllib2.urlopen(catfact_url).read()
+        parsed_response = json.loads(raw_response)
+
+        response_obj.messages_to_send.append(parsed_response["fact"])
+
     except Exception as e:
-        logger.error("Error in catfacts: " + str(e)) 
+        logger.error("Error in catfacts: " + str(e))
         response_obj.status_code = -1
-    
-    return response_obj   
+
+    return response_obj
 
 def return_alias():
     alias_list = ["catfact"]
