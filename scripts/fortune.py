@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import urllib2
+import urllib2, json
 import sys
 from response import Response
 
@@ -8,11 +8,16 @@ from pb_logging import PBLogger
 logger = PBLogger("Fortune")
 
 # returns a random "fortune"
-def run(response):
+def run(response, args=None):
     response_obj = Response(sys.modules[__name__])
+    fortune_url = "https://9bj8bks4p3.execute-api.us-west-2.amazonaws.com/prod/fortunefortoday-get-cookie" # This was the URL I found in the JS code on the website
+
     try:
         # get fortune
-        fortune = urllib2.urlopen("http://www.fortunefortoday.com/getfortuneonly.php").read()  # noqa: 501
+        raw_response = urllib2.urlopen(fortune_url).read()
+        parsed_response = json.loads(raw_response)
+        fortune = parsed_response['body-json']['GetCookieResult'] # The JSON returned is pretty weird, this is where it stores the actual fortune
+
     except Exception as e:
         fortune = "Unable to reach Fortune Telling api"
         logger.error("Unable to reach Fortune Telling API: " + str(e))
