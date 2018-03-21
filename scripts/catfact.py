@@ -8,7 +8,7 @@ from response import Response
 from pb_logging import PBLogger
 logger = PBLogger("CatFact")
 
-def run(response):
+def run(response, args=None):
     response_obj = Response(sys.modules[__name__])
     catfact_url = "https://catfact.ninja/fact"
 
