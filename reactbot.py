@@ -37,6 +37,8 @@ class ReactBot(Bot):
         super(ReactBot, self).__init__(token, bot_name)
         self.connect_to_slack(token)
 
+        self.annoyance = 0 # Used for the "No, this is PantherHackers" response
+
     def connect_to_slack(self, token):
         # Initiates connection to the server based on the token, receives websocket URL "bot_conn"
         logger.info("Starting RTM connection")
@@ -105,7 +107,7 @@ class ReactBot(Bot):
         message_json = json.loads(unicode(s))
 
         logger.info(message_json["type"].replace("_"," ").title())
-        
+
         try:
             if Bot.GENERAL_CHANNEL == message_json["channel"]:
                 if "member_joined_channel" == message_json["type"]:
@@ -113,7 +115,7 @@ class ReactBot(Bot):
         except:
             pass
 
-        
+
         if "message" == message_json["type"]:
             if "subtype" in message_json:
                 if message_json["subtype"] == "bot_message":
@@ -149,21 +151,22 @@ class ReactBot(Bot):
 
     # message_json Message
     # Sends a message to the same channel that message_json originates from
-    def response_message(self, message_json, l):
+    # Provide a username and icon URL to override the default ones
+    def response_message(self, message_json, l, username=None, icon_url=None):
         for text in l:
             self.SLACK_CLIENT.api_call(
                 "chat.postMessage",
                 channel=message_json["channel"],
                 text=text,
-                username=self.BOT_NAME,
-                icon_url=self.BOT_ICON_URL
+                username=username if username is not None else self.BOT_NAME,
+                icon_url=icon_url if icon_url is not None else self.BOT_ICON_URL
             )
             logger.debug("Message sent")
 
     # Command Messages are messages that begin with the `!` prefix
     # Returns True if a message_json or trigger was used in this method
     def command_message(self, message_json):
-        # Checks if message starts with an exclamation point, and does the respective task 
+        # Checks if message starts with an exclamation point, and does the respective task
         if message_json["text"].startswith("!"):
             # Checks if the message is longer than a single character
             if len(message_json["text"]) <= 1:
@@ -172,7 +175,7 @@ class ReactBot(Bot):
             # Put all ! command parameters into an array
             args = message_json["text"].split()
             command_string = args[0][1:].lower()
-            
+
             args.pop(0)  # gets rid of the command
 
             # Checks if pattern differs from command messages
@@ -245,7 +248,7 @@ class ReactBot(Bot):
                 args = message_json["text"].split()
                 command_string = args[0][1:].lower()
                 args.pop(0)
-    
+
                 # Checks if pattern differs from admin commands
                 # by containing digits or another "$" character
                 if not command_string.isalpha():
@@ -300,7 +303,19 @@ class ReactBot(Bot):
             message_txt = message_json["text"].lower()
             try:
                 if re.match(".*panther +hackers.*", str(message_txt)):
-                    self.response_message(message_json, ["NO THIS IS PANTHERHACKERS"])
+                    rebukes = ["No, this is PantherHackers.", "_No,_ this is PantherHackers.", "_*NO, THIS IS PANTHERHACKERS!!*_"] # List of responses in increasing intensity
+                    reaction_image_urls = ["https://s14.postimg.org/od6weheap/annoyance_level_0.png", "https://s14.postimg.org/zcs3q3k5d/annoyance_level_1.png", "https://s14.postimg.org/4vc8yjp2p/annoyance_level_2.png"] # List of avatars to temporarily switch to
+
+                    # Reset annoyance to 0 when it reaches 2
+                    if (self.annoyance >= len(rebukes)):
+                        self.annoyance = 0
+
+                    rebuke = rebukes[self.annoyance]
+                    image_url = reaction_image_urls[self.annoyance]
+                    self.annoyance += 1 # Increase annoyance each time this is triggered
+
+                    self.response_message(message_json, [rebuke], icon_url=image_url)
+
                     return True
                 elif message_txt == "hey pantherbot":
                     # returns user info that said hey
@@ -320,13 +335,13 @@ class ReactBot(Bot):
                 elif message_txt == ":rip: pantherbot" or message_txt == "rip pantherbot":
                     self.response_message(message_json, [":rip:"])
                     return True
-                
+
                 # No response was necessary
                 return False
             except:
                 logger.error("Error with checking in other_message: likely the message contained unicode characters")
         elif "subtype" in message_json:
-            if message_json["subtype"] == "channel_leave" or message_json["subtype"] == "group_leave": 
+            if message_json["subtype"] == "channel_leave" or message_json["subtype"] == "group_leave":
                 return True
             else:
                 return False
@@ -350,7 +365,7 @@ class ReactBot(Bot):
 
     def riyans_denial(self, message_json):
         if "U0LJJ7413" in message_json["user"]:
-            if message_json["text"][:1] in ["!", "$"] or message_json["text"].lower() in ["hey pantherbot", "pantherbot ping"]: 
+            if message_json["text"][:1] in ["!", "$"] or message_json["text"].lower() in ["hey pantherbot", "pantherbot ping"]:
                 self.response_message(message_json, ["No."])
                 return True
         return False
