@@ -28,6 +28,10 @@ def return_alias():
     alias_list = ["catfact"]
     return alias_list
 
+def return_alias():
+    alias_list = ["catfact"]
+    return alias_list
+
 def error_cleanup(error_code):
     response_obj = Response(sys.modules[__name__])
     if error_code is -1:

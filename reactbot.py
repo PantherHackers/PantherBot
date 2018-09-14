@@ -42,7 +42,7 @@ class ReactBot(Bot):
     def connect_to_slack(self, token):
         # Initiates connection to the server based on the token, receives websocket URL "bot_conn"
         logger.info("Starting RTM connection")
-        bot_conn = self.SLACK_CLIENT.api_call(
+        self.BOT_CONN = self.SLACK_CLIENT.api_call(
             "rtm.start",
             token = token
         )
@@ -53,7 +53,7 @@ class ReactBot(Bot):
         # Creates WebSocketApp based on the URL returned by the RTM API
         # Assigns local methods to websocket methods
         logger.info("Initializing WebSocketApplication")
-        self.WEBSOCKET = websocket.WebSocketApp(bot_conn["url"],
+        self.WEBSOCKET = websocket.WebSocketApp(self.BOT_CONN["url"],
                                 on_message=self.on_message,
                                 on_error=self.on_error,
                                 on_close=self.on_close,
@@ -276,7 +276,11 @@ class ReactBot(Bot):
                     self.response_message(message_json, ["You seem to have used a function that doesnt exist, or used it incorrectly. See `!help` for a list of functions and parameters"])
                     return True
 
-                if message_json["user"] not in self.ADMIN:
+                user_info = self.SLACK_CLIENT.api_call(
+                    "users.info",
+                    user = message_json["user"]
+                )
+                if user_info["user"]["is_admin"] is not True:
                     self.response_message(message_json, ["You don't seem to be an authorized user to use these commands."])
                     return True
 
