@@ -7,3 +7,4 @@ websocket-client
 chatterbot
 pyaml
 praw
+git+https://github.com/itsmarta/marta-python.git

@@ -79,13 +79,24 @@ class Bot(object):
 
     # Send Message
     # Sends a message to the specified channel (looks up by channel name, unless is_id is True)
-    def send_msg(self, channel, text, is_id=False, thread_ts=None):
+    def send_msg(self, channel, text, is_id=False, thread_ts=None, attach=None):
         if is_id:
             channel_id = channel
         else:
             channel_id = self.channels_to_ids([channel])[0]
         if thread_ts is not None:
-            response_json = self.SLACK_CLIENT.api_call(
+            if attach is not None:
+                response_json = self.SLACK_CLIENT.api_call(
+                    "chat.postMessage",
+                    channel=channel_id,
+                    text=text,
+                    username=self.BOT_NAME,
+                    icon_url=self.BOT_ICON_URL,
+                    thread_ts=thread_ts,
+                    attachments=attach
+                )
+            else:
+                response_json = self.SLACK_CLIENT.api_call(
                 "chat.postMessage",
                 channel=channel_id,
                 text=text,
@@ -94,13 +105,23 @@ class Bot(object):
                 thread_ts=thread_ts
             )
         else:
-            response_json = self.SLACK_CLIENT.api_call(
-                "chat.postMessage",
-                channel=channel_id,
-                text=text,
-                username=self.BOT_NAME,
-                icon_url=self.BOT_ICON_URL
-            )
+            if attach is not None:
+                response_json = self.SLACK_CLIENT.api_call(
+                    "chat.postMessage",
+                    channel=channel_id,
+                    text=text,
+                    username=self.BOT_NAME,
+                    icon_url=self.BOT_ICON_URL,
+                    attachments=attach
+                )
+            else:
+                response_json = self.SLACK_CLIENT.api_call(
+                    "chat.postMessage",
+                    channel=channel_id,
+                    text=text,
+                    username=self.BOT_NAME,
+                    icon_url=self.BOT_ICON_URL
+                )
         logger.info("Message sent: ")
         return response_json
 

@@ -152,7 +152,7 @@ class ReactBot(Bot):
     # message_json Message
     # Sends a message to the same channel that message_json originates from
     # Provide a username and icon URL to override the default ones
-    def response_message(self, message_json, l, username=None, icon_url=None):
+    def response_message(self, message_json, l, username=None, icon_url=None, attach=None):
         for text in l:
             self.SLACK_CLIENT.api_call(
                 "chat.postMessage",
