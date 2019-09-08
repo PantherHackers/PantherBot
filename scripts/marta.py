@@ -11,48 +11,49 @@ from collections import defaultdict
 from pb_logging import PBLogger
 logger = PBLogger("MARTA")
 
+# Since Slack wouldn't know where the first arg ends and the second begins, the first arg (station name) has to be one word
 stations = {
     "AIRPORT STATION": ['airport','hartsfield','hartsfield-jackson'],
-    "ARTS CENTER STATION": ['arts center'],
+    "ARTS CENTER STATION": ['artscenter'],
     "ASHBY STATION": ['ashby'],
     "AVONDALE STATION": ['avondale'],
     "BANKHEAD STATION": ['bankhead'],
     "BROOKHAVEN STATION": ['brookhaven'],
     "BUCKHEAD STATION": ['buckhead'],
     "CHAMBLEE STATION": ['chamblee'],
-    "CIVIC CENTER STATION": ['civic center'],
-    "COLLEGE PARK STATION": ['college park'],
+    "CIVIC CENTER STATION": ['civiccenter'],
+    "COLLEGE PARK STATION": ['collegepark'],
     "DECATUR STATION": ['decatur'],
-    "OMNI DOME STATION": ['omni dome'],
+    "OMNI DOME STATION": ['omnidome','dome','mercedesbenz','cnn','statefarmarena','congresscenter','gwcc'],
     "DORAVILLE STATION": ['doraville'],
     "DUNWOODY STATION": ['dunwoody'],
-    "EAST LAKE STATION": ['east lake'],
-    "EAST POINT STATION": ['east point'],
-    "EDGEWOOD CANDLER PARK STATION": ['edgewood','candler park'],
-    "FIVE POINTS STATION": ['five points','5 points'],
+    "EAST LAKE STATION": ['eastlake'],
+    "EAST POINT STATION": ['eastpoint'],
+    "EDGEWOOD CANDLER PARK STATION": ['edgewood','candlerpark'],
+    "FIVE POINTS STATION": ['fivepoints','5points'],
     "GARNETT STATION": ['garnett'],
-    "GEORGIA STATE STATION": ['georgia state','gsu','school'],
-    "HAMILTON E HOLMES STATION": ['hamilton e holmes','h.e. holmes','he holmes'],
-    "INDIAN CREEK STATION": ['indian creek'],
-    "INMAN PARK STATION": ['inman','inman park'],
+    "GEORGIA STATE STATION": ['georgiastate','gsu','school'],
+    "HAMILTON E HOLMES STATION": ['hamiltoneholmes','h.e.holmes','heholmes'],
+    "INDIAN CREEK STATION": ['indiancreek'],
+    "INMAN PARK STATION": ['inman','inmanpark'],
     "KENSINGTON STATION": ['kensington'],
     "KING MEMORIAL STATION": ['king memorial','mlk'],
     "LAKEWOOD STATION": ['lakewood'],
     "LENOX STATION": ['lenox'],
     "LINDBERGH STATION": ['lindbergh'],
-    "MEDICAL CENTER STATION": ['medical center'],
+    "MEDICAL CENTER STATION": ['medicalcenter','medcenter'],
     "MIDTOWN STATION": ['midtown'],
-    "NORTH AVE STATION": ['north ave','north avenue','gt','georgia tech', 'tech'],
-    "NORTH SPRINGS STATION": ['north springs'],
-    "OAKLAND CITY STATION": ['oakland','oakland city'],
-    "PEACHTREE CENTER STATION": ['peachtree center'],
-    "SANDY SPRINGS STATION": ['sandy springs'],
-    "VINE CITY STATION": ['vine city'],
-    "WEST END STATION": ['west end'],
-    "WEST LAKE STATION": ['west lake']
+    "NORTH AVE STATION": ['northave','northavenue','gt','georgiatech', 'tech'],
+    "NORTH SPRINGS STATION": ['northsprings'],
+    "OAKLAND CITY STATION": ['oakland','oaklandcity'],
+    "PEACHTREE CENTER STATION": ['peachtreecenter'],
+    "SANDY SPRINGS STATION": ['sandysprings'],
+    "VINE CITY STATION": ['vinecity'],
+    "WEST END STATION": ['westend'],
+    "WEST LAKE STATION": ['westlake']
 }
 
-# flips a coin
+# MARTA times
 def run(response, station=None, line=None, direction=None):
     response_obj = Response(sys.modules[__name__])
     found=False
@@ -130,7 +131,7 @@ def is_admin_command():
     return False
 
 def help_preview():
-    return "!coin"
+    return "!marta <stationName> <Optional:Red/Gold/Blue/Green> <Optional:N/S/E/W>"
 
 def help_text():
-    return "Flips a coin and returns the result... Sometimes you wonder if people even read these. Heads they don't."
+    return "Check MARTA train times."
